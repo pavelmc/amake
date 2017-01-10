@@ -1,0 +1,313 @@
+#!/bin/bash
+
+#########################################################################
+# This script is a make like tool for arduino-builder under linux
+# (a kind of arduino make (hence the name amake) 
+#
+# Author: Pavel Milanes, pavelmc@gmail.com, CO7WT
+#
+# Rev: 0.1 / Jan 2016
+#
+# Latest version is always found on the Github repository (URL below)
+# https://www.github.com/pavelmc/amake/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#########################################################################
+
+# TMP folder
+N=`echo $2 | cut -d "." -f 1`
+BPATH=/tmp/amake/"$N"_buid
+
+# arduino ide folder paths [This is the only one setting a user must change]
+# and must point to where you extracted the arduino ide .xz file, please
+# keep it between " " to be safe.
+APATH="/home/pavel/Documentos/Programación/Arduino/arduino-1.8.0"
+
+# From this point and below you don't need to do any change, unless you are a
+# developer and want to tweak or change something; hack are always welcomed
+# if you share your mods with me.
+
+# default paths
+SOFT="$APATH"/arduino-builder
+DHW="$APATH"/hardware
+UHW="$HOME/Arduino/hardware"
+DLIB="$APATH"/libraries
+ULIB="$HOME/Arduino/libraries"
+TOOLSB="$APATH"/tools-builder
+TOOLSA="$DHW"/tools/avr
+FILE="$2"
+BOARD="$1"
+
+# some needed flags
+WRN=none
+IDEVER=10800
+PREF0=build.warn_data_percentage=75
+PREF1=runtime.tools.avrdude.path="$TOOLSA"
+PREF2=runtime.tools.arduinoOTA.path="$TOOLSA"
+PREF3=runtime.tools.avr-gcc.path="$TOOLSA"
+VERBOSE="-verbose"
+
+# avrdude settings
+ADUDE="$TOOLSA"/bin/avrdude
+ADUDECONF="$TOOLSA"/etc/avrdude.conf
+PROG=$3
+PORT=$4
+
+# create the tmp dir
+mkdir /tmp/amake 2> /dev/null
+mkdir "$BPATH" 2> /dev/null
+
+# Test for the local hardware and libraries folders
+mkdir $UHW 2> /dev/null
+mkdir $ULIN 2> /dev/null
+
+# This function will set the MCU, MCU string and baudrate needed later for
+# build and download with avrdude, here is where you must add new boards
+# if you need to, if so please send me your tested mods for inclusion
+whichmcu() {
+    # select the proper MCU for compilation, MCU & baudrate for avrdude
+    case "$1" in 
+        uno)
+            # verified
+            MCU=atmega328p
+            MCUSTR=uno
+            BRATE=115200
+            ;;
+        pro5v328)
+            # verified
+            MCU=atmega328p
+            MCUSTR="pro:cpu=16MHzatmega328"
+            BRATE=115200
+            ;;
+        pro328)
+            # verified
+            MCU=atmega328p
+            MCUSTR="pro:cpu=8MHzatmega328"
+            BRATE=115200
+            ;;
+        pro5v)
+            # verified
+            MCU=atmega168
+            MCUSTR="pro:cpu=16MHz$MCU"
+            BRATE=115200
+            ;;
+        pro)
+            # verified
+            MCU=atmega168
+            MCUSTR="pro:cpu=8MHz$MCU"
+            BRATE=115200
+            ;;
+        nano328)
+            # verified
+            MCU=atmega328p
+            MCUSTR="nano:cpu=8MHzatmega328"
+            BRATE=57600
+            ;;
+        nano)
+            # verified
+            MCU=atmega168
+            MCUSTR="nano:cpu=8MHz$MCU"
+            BRATE=57600
+            ;;
+        ng)
+            # verified
+            MCU=atmega168
+            MCUSTR="atmegang:cpu=$MCU"
+            BRATE=19200
+            ;;
+        ng8)
+            # verified
+            MCU=atmega8
+            MCUSTR="atmegang:cpu=$MCU"
+            BRATE=19200
+            ;;
+        *)
+            echo "Wrong board selection or not covered yet"
+            echo "see 'amake usage' for details; then, if not covered"
+            echo "write to the developer at pavelmc at gmail dot com"
+            exit 1
+            ;;
+    esac
+}
+
+# Compiler function
+compile() {
+    ##### make it
+    # first pass
+    "$SOFT" -dump-prefs -logger=human -hardware "$DHW" -hardware "$UHW" \
+        -tools "$TOOLSA" -tools "$TOOLSB" -built-in-libraries "$DLIB" \
+        -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
+        -ide-version=$IDEVER -build-path "$BPATH" -warnings=$WRN \
+        -prefs="$PREF0" -prefs="$PREF1" -prefs="$PREF2" \
+        -prefs="$PREF3" $VERBOSE "$FILE"
+    
+    # second pass
+    "$SOFT" -compile -logger=human -hardware "$DHW" -hardware "$UHW" \
+        -tools "$TOOLSA" -tools "$TOOLSB" -built-in-libraries "$DLIB" \
+        -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
+        -ide-version=$IDEVER -build-path "$BPATH" -warnings=$WRN \
+        -prefs="$PREF0" -prefs="$PREF1" -prefs="$PREF2" \
+        -prefs="$PREF3" $VERBOSE "$FILE"
+}
+
+# upload function
+uploadit() {
+    # upload it
+    case "$PROG" in
+        arduino)
+            "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG -P $PORT \
+            -b $BRATE -D -U flash:w:"$BPATH"/"$FILE".hex:i -v 
+            ;;
+        pickit)
+            "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG \
+            -D -U flash:w:"$BPATH"/"$FILE".hex:i -v -i 1 
+            ;;
+        *)
+            echo "Error: programmer not recognized."
+            exit 1
+            ;;
+    esac
+}
+
+# usage show function
+usage() {
+    echo "'amake' - Simple interface for the arduino-builder command of Arduino"
+    echo "Usage: this script has 3 main modes: cleaning, compiling & uploading"
+    echo " "
+    echo " Cleaning the build environment:"
+    echo " ==============================="
+    echo " amake clean <file>"
+    echo "       This will erase the build temp folder to reset the build process"
+    echo "       * 'file' is the main project file that must have the "
+    echo "         .ino extension in it and must not contain a dot ('.')"
+    echo "         or a path on it, just the name.ino"
+    echo " "
+    echo " Example: amake clean test.ino"
+    echo " "
+    echo " Compiling a sketch:"
+    echo " ==================="
+    echo " amake <arduino_board_alias> <file>"
+    echo "      * 'arduino_board_alias' refers to the specific board, see "
+    echo "         'amake list' output for details."
+    echo "      * 'file' is the main project file that must have the "
+    echo "         .ino extension in it and must not contain a dot ('.')"
+    echo "         or a path on it, just the name.ino"
+    echo " "
+    echo " Example: amake uno test.ino"
+    echo " "
+    echo " "
+    echo " Downloading the firmware to a board:"
+    echo " ===================================="
+    echo " amake <arduino_board_alias> <file> <programmer> <serialport>"
+    echo "      * 'arduino_board_alias' refers to the specific board see the "
+    echo "        'amake list' output"
+    echo "      * 'file' is the main project file that must have the .ino extension"
+    echo "      * 'programmer' is the programmer type, see 'amake prog' output"
+    echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
+    echo " "
+    echo " Example: amake uno test.ino arduino /dev/ttyUSB0"
+    echo " "
+    echo " "
+    echo " You can get more info with the 'amake list' and 'amake prog' options"
+    echo " by now there is a limited boards support (the ones I can test) and"
+    echo " only two programmers available."
+    echo " "
+    echo " You can contribute testing other boards and help the developer to get"
+    echo " them supported, please do contact me: pavelmc@gmail.com"
+    echo " "
+    echo " Project website: https://github.com/pavelmc/amake/"
+    echo " "
+}
+
+list() {
+    echo "By now only the following boards has support, if you like to get your"
+    echo "board supported you can hack the code and send it to me for inclusion,"
+    echo "or contact me to help you to get support for it."
+    echo " "
+    echo "      uno = Arduino Uno w/ ATMega328p, 16Mhz"
+    echo "      pro = Pro/Pro Mini w/ ATMega168, 3V, 8Mhz"
+    echo "    pro5v = Pro/Pro Mini w/ ATMega168, 5V, 16Mhz"
+    echo "   pro328 = Pro/Pro Mini w/ ATMega328, 3V, 8Mhz"
+    echo " pro5v328 = Pro/Pro Mini w/ ATMega368, 5V, 16Mhz"
+    echo "     nano = Nano w/ ATMega168"
+    echo "  nano328 = Nano 328 w/ ATMega328"
+    echo "       ng = NG w/ ATMega168"
+    echo "      ng8 = NG w/ ATMega8"
+    echo " "
+    echo "Contact the author: pavelmc@gmail.com"
+    echo " "
+}
+
+prog() {
+    echo "This script supports just two programmer types:"
+    echo " * 'arduino', the default via serial port in the boards without USB or"
+    echo "    via the USB on the board that has it; this programmer has a second"
+    echo "    parameter and it's the serial port to talk to."
+    echo " "
+    echo " * 'pickit2', an ICP one that is very common, take into account that"
+    echo "   you must configure the file in /hardware/arduino/avr/programmers.txt"
+    echo "   to get it supported, and when using pickit the port part is not needed."
+    echo " "
+    echo "Contact the author: pavelmc@gmail.com if you have comments"
+    echo " "
+}
+
+
+# do it
+case "$1" in
+    clean)
+        # clean the build environment
+        rm -rf "$BPATH"
+        ;;
+    use)
+        # print usage
+        usage
+        ;;
+    list)
+        # print supported boards
+        list
+        ;;
+    prog)
+        # print supported programmers
+        prog
+        ;;
+    *)
+        # nothing or real parameters
+        if [ -z "$1" ] ; then
+            # empty parameters show use
+            usage
+        else
+            # select the proper mcus
+            whichmcu $1
+            
+            # normal operation, compile or upload
+            if [ -z "$3" ] ; then
+                # Just two parameter: to compile
+                compile
+            else
+                # more than two parameter: to upload it
+                
+                # but first test if the firmware is there.
+                if [ -e "$BPATH"/"$FILE".hex ] ; then
+                    # it's there upload it
+                    uploadit
+                else
+                    # no there, try to compile it
+                    compile && uploadit
+                fi
+            fi
+        fi
+        ;;
+esac
+
