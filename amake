@@ -88,46 +88,43 @@ whichmcu() {
             # verified
             MCU=atmega328p
             MCUSTR="pro:cpu=16MHzatmega328"
-            BRATE=115200
+            BRATE=57600
             ;;
         pro328)
             # verified
             MCU=atmega328p
             MCUSTR="pro:cpu=8MHzatmega328"
-            BRATE=115200
+            BRATE=57600
             ;;
         pro5v)
             # verified
             MCU=atmega168
             MCUSTR="pro:cpu=16MHz$MCU"
-            BRATE=115200
+            BRATE=19200
             ;;
         pro)
             # verified
             MCU=atmega168
             MCUSTR="pro:cpu=8MHz$MCU"
-            BRATE=115200
+            BRATE=19200
             ;;
+            ################## unverified below this line #################
         nano328)
-            # verified
             MCU=atmega328p
             MCUSTR="nano:cpu=8MHzatmega328"
-            BRATE=57600
+            BRATE=19200
             ;;
         nano)
-            # verified
             MCU=atmega168
             MCUSTR="nano:cpu=8MHz$MCU"
-            BRATE=57600
+            BRATE=19200
             ;;
         ng)
-            # verified
             MCU=atmega168
             MCUSTR="atmegang:cpu=$MCU"
             BRATE=19200
             ;;
         ng8)
-            # verified
             MCU=atmega8
             MCUSTR="atmegang:cpu=$MCU"
             BRATE=19200
