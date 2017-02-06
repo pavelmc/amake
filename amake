@@ -2,11 +2,11 @@
 
 #########################################################################
 # This script is a make like tool for arduino-builder under linux
-# (a kind of arduino make (hence the name amake) 
+# (a kind of arduino make (hence the name amake)
 #
 # Author: Pavel Milanes, pavelmc@gmail.com, CO7WT
 #
-# Rev: 0.1 / Jan 2016
+# Rev: 0.2 / Feb 2017
 #
 # Latest version is always found on the Github repository (URL below)
 # https://www.github.com/pavelmc/amake/
@@ -25,18 +25,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################
 
-# TMP folder
-N=`echo $2 | cut -d "." -f 1`
-BPATH=/tmp/amake/"$N"_buid
-
 # arduino ide folder paths [This is the only one setting a user must change]
 # and must point to where you extracted the arduino ide .xz file, please
 # keep it between " " to be safe.
-APATH="/home/pavel/Documentos/Programación/Arduino/arduino-1.8.0"
+APATH="/home/pavel/Documentos/Software/Arduino/arduino-1.6.9"
 
 # From this point and below you don't need to do any change, unless you are a
 # developer and want to tweak or change something; hack are always welcomed
 # if you share your mods with me.
+
+# Test to find the configured name of the main file.
+#
+# If we use several files (.ino files) we need to know which is the main file
+# so, the trick is to make the first compilation against the main file and upon
+# success it will set it in a hidden file (linux); from this point
+# forward we can compile against any file in the sketch.
+if [ -e ".amake" ] ; then
+    # it's set before, load it
+    N=`cat .amake`
+else
+    # not set, parse from command line
+    N=`echo $2 | cut -d "." -f 1`
+fi
+
+# Preserve actual directory
+ADIR=`pwd`
+
+# Build path
+BPATH=/tmp/amake/"$N"_buid
 
 # default paths
 SOFT="$APATH"/arduino-builder
@@ -46,13 +62,13 @@ DLIB="$APATH"/libraries
 ULIB="$HOME/Arduino/libraries"
 TOOLSB="$APATH"/tools-builder
 TOOLSA="$DHW"/tools/avr
-FILE="$2"
+FILE="$N".ino
 BOARD="$1"
 
 # some needed flags
 WRN=none
 IDEVER=10800
-PREF0=build.warn_data_percentage=75
+PREF0=build.warn_data_percentage=90
 PREF1=runtime.tools.avrdude.path="$TOOLSA"
 PREF2=runtime.tools.arduinoOTA.path="$TOOLSA"
 PREF3=runtime.tools.avr-gcc.path="$TOOLSA"
@@ -77,7 +93,7 @@ mkdir $ULIN 2> /dev/null
 # if you need to, if so please send me your tested mods for inclusion
 whichmcu() {
     # select the proper MCU for compilation, MCU & baudrate for avrdude
-    case "$1" in 
+    case "$1" in
         uno)
             # verified
             MCU=atmega328p
@@ -138,6 +154,7 @@ whichmcu() {
     esac
 }
 
+
 # Compiler function
 compile() {
     ##### make it
@@ -147,28 +164,34 @@ compile() {
         -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
         -ide-version=$IDEVER -build-path "$BPATH" -warnings=$WRN \
         -prefs="$PREF0" -prefs="$PREF1" -prefs="$PREF2" \
-        -prefs="$PREF3" $VERBOSE "$FILE"
-    
-    # second pass
+        -prefs="$PREF3" $VERBOSE "$FILE" && \
     "$SOFT" -compile -logger=human -hardware "$DHW" -hardware "$UHW" \
         -tools "$TOOLSA" -tools "$TOOLSB" -built-in-libraries "$DLIB" \
         -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
         -ide-version=$IDEVER -build-path "$BPATH" -warnings=$WRN \
         -prefs="$PREF0" -prefs="$PREF1" -prefs="$PREF2" \
         -prefs="$PREF3" $VERBOSE "$FILE"
+
+    # if compilation worked save the main file name into a hidden file on
+    # the project folder
+    if [ "$?" == "0" ] ; then
+        # all good, save the project filename on a temp config one
+        echo $N > "$ADIR/".amake
+    fi
 }
 
-# upload function
+
+# Upload function
 uploadit() {
     # upload it
     case "$PROG" in
         arduino)
             "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG -P $PORT \
-            -b $BRATE -D -U flash:w:"$BPATH"/"$FILE".hex:i -v 
+            -b $BRATE -D -U flash:w:"$BPATH"/"$FILE".hex:i -v
             ;;
         pickit)
             "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG \
-            -D -U flash:w:"$BPATH"/"$FILE".hex:i -v -i 1 
+            -D -U flash:w:"$BPATH"/"$FILE".hex:i -v -i 1
             ;;
         *)
             echo "Error: programmer not recognized."
@@ -177,7 +200,8 @@ uploadit() {
     esac
 }
 
-# usage show function
+
+# Usage show function
 usage() {
     echo "'amake' - Simple interface for the arduino-builder command of Arduino"
     echo "Usage: this script has 3 main modes: cleaning, compiling & uploading"
@@ -185,10 +209,12 @@ usage() {
     echo " Cleaning the build environment:"
     echo " ==============================="
     echo " amake clean <file>"
-    echo "       This will erase the build temp folder to reset the build process"
     echo "       * 'file' is the main project file that must have the "
     echo "         .ino extension in it and must not contain a dot ('.')"
     echo "         or a path on it, just the name.ino"
+    echo " "
+    echo "       This also unset the temp file that points to the main file in"
+    echo "         a multi .ino file scenario"
     echo " "
     echo " Example: amake clean test.ino"
     echo " "
@@ -200,6 +226,11 @@ usage() {
     echo "      * 'file' is the main project file that must have the "
     echo "         .ino extension in it and must not contain a dot ('.')"
     echo "         or a path on it, just the name.ino"
+    echo " "
+    echo "      In a multi .ino file scenario you must make first a 'clean'"
+    echo "        procedure and then compile against the main file, after"
+    echo "        that you can compile the entire project against any file"
+    echo "        (or none) unless you rename the main file."
     echo " "
     echo " Example: amake uno test.ino"
     echo " "
@@ -227,6 +258,8 @@ usage() {
     echo " "
 }
 
+
+# List supported board types.
 list() {
     echo "By now only the following boards has support, if you like to get your"
     echo "board supported you can hack the code and send it to me for inclusion,"
@@ -246,6 +279,8 @@ list() {
     echo " "
 }
 
+
+# Print supported programmers
 prog() {
     echo "This script supports just two programmer types:"
     echo " * 'arduino', the default via serial port in the boards without USB or"
@@ -266,6 +301,7 @@ case "$1" in
     clean)
         # clean the build environment
         rm -rf "$BPATH"
+        rm -f .amake
         ;;
     use)
         # print usage
@@ -287,14 +323,14 @@ case "$1" in
         else
             # select the proper mcus
             whichmcu $1
-            
+
             # normal operation, compile or upload
             if [ -z "$3" ] ; then
                 # Just two parameter: to compile
                 compile
             else
                 # more than two parameter: to upload it
-                
+
                 # but first test if the firmware is there.
                 if [ -e "$BPATH"/"$FILE".hex ] ; then
                     # it's there upload it
@@ -307,4 +343,3 @@ case "$1" in
         fi
         ;;
 esac
-

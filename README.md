@@ -3,13 +3,13 @@ Simple interface to build and Arduino project from the command line in linux
 
 Motivation
 ----------
-I love the whole Arduino project idea, but happens that I use Linux OS as may only OS and I hate the lack of modern functions in the IDE.
+I love the whole Arduino project idea, but happens that I use Linux OS as may only OS and I hate the lack of modern functions in the provided "Arduino IDE".
 
-Some users have my same ideas and they brought to life the [Ino](https://github.com/amperka/ino) software to make this easy; and then when this go deprecated the [Arturo](https://github.com/scottdarch/Arturo/) software take the lead with a folk into modern waters.
+Some other users of the Arduino Project faced this (or maybe another) problems and they brought to life the some code projects to make possible to compile his projects without using the default IDE, an example of this is the [Ino](https://github.com/amperka/ino) software; and then when this go deprecated the [Arturo](https://github.com/scottdarch/Arturo/) software take the lead with a folk into modern waters.
 
-I has been using both projects since ever, the idea and software are good, but they has different file structures from the Arduino IDE standard, and this bug me a lot; some functions are not ported and you need to know some other tricks.
+I has been using both projects since ever, the idea and software are good, but they has different file structures from the Arduino IDE standard, and this bug me a lot: when you share the code with Arduino IDE Software they (or you) must to tweak the files to make it work.
 
-Then I saw it, a note on the release notes of the Arduino IDE version 1.8.0: now you can build from the command line without the whole IDE apparatus (you don't need a X installed) and this bit me. (Actually it has been on the Arduino IDE since 1.6.x as I can tell, but I don’t know it was THE tool)
+Then I saw it (a note on the release notes of the Arduino IDE version 1.8.0): now you can build from the command line without the whole IDE apparatus (you don't need a X installed) and this bit me. (Actually it has been on the Arduino IDE since 1.6.x as I can tell, but I don’t know it was **THE TOOL** I was looking for)
 
 Having a way to build the arduino projects with the arduino tools in the command line will help me integrate it to [Geany IDE](http://www.geany.org) my default IDE and keep the WHOLE compatibility of the project; wow!
 
@@ -20,16 +20,20 @@ This project is my script that I want to share and improve with your help.
 Features
 --------
 * Full arduino integration: same folder structure, same tools, same software.
+* Full compatibility with users of the Arduino IDE software.
 * You need only to know 3 things:
     * What is your board
     * What programmer you will use to download the code
     * What is the USB port name where the arduino is attached
 * This is free software under the GNU GPL version 3.0
 
+Changelog
+---------
+* Feb/2017: Ease the work with multiple .ino files. You need to make a "amake clean" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake clean" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
 
 Configuration
 -------------
-You need the Arduino IDE software for Linux in a version equal or greater than 1.8.0, you can get it con the [official Arduino Site](http[://www.arduino.cc) please download the file and extract it, put the folder where you like, but take note of the place (full path).
+You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like, but take note of the place (full path).
 
 If you don't have preferences  just put it right in your home folder.
 
@@ -39,7 +43,7 @@ Once you downloaded and extracted the amake-master.zip from this project, you ne
 APATH="~/Documentos/Programación/Arduino/arduino-1.8.0"
 ```
 
-Then put the path you take note in the previous steps (where you put the arduino IDE folder) in this line between the "" with no leading or trailing spaces.
+Then put the path you take note in the previous steps (where you placed the arduino IDE folder) in this line between the "" with no leading or trailing spaces.
 
 Now you need to make the amake file executable, you can use your graphic interface tool (right click > properties > make executable) or using the basic command line, like this:
 
@@ -67,7 +71,7 @@ cd %d ; amake uno %f arduino /dev/ttyUSB1
 
 In this case the new parameters are the word 'arduino' that is the  programmer type, in this case we are using an Arduino Uno R3 via USB (you can get more details by runing 'amake prog')
 
-The  '/dev/ttyUSB1' is the USB port in which the arduino is connected.
+The '/dev/ttyUSB1' is the USB port in which the arduino is connected.
 
 **Clean**
 
