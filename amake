@@ -25,17 +25,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################
 
-# arduino ide folder paths [This is the only one setting a user must change]
-# and must point to where you extracted the arduino ide .xz file, please
+# Arduino ide folder paths.
+################################################################################
+# It must point to where you extracted the arduino ide .xz file, please
 # keep it between " " to be safe.
-APATH="/home/pavel/Documentos/Software/Arduino/arduino-1.6.9"
+APATH="/home/pavel/Documentos/Software/Arduino/arduino-1.8.1"
 
+# The Arduino IDE version number.
+################################################################################
+# It's built swapping the dots in the version by zeros, for example:
+# version 1.6.9 is write as 10609, please keep it between " " to be safe.
+IDEVER="10801"
+
+################################################################################
 # From this point and below you don't need to do any change, unless you are a
 # developer and want to tweak or change something; hack are always welcomed
-# if you share your mods with me.
+# and please do share your mods with me.
+################################################################################
 
-# Test to find the configured name of the main file.
-#
+# Test to find the configured name of the main file in multi-file cases.
+################################################################################
 # If we use several files (.ino files) we need to know which is the main file
 # so, the trick is to make the first compilation against the main file and upon
 # success it will set it in a hidden file (linux); from this point
@@ -67,8 +76,7 @@ BOARD="$1"
 
 # some needed flags
 WRN=none
-IDEVER=10800
-PREF0=build.warn_data_percentage=90
+PREF0=build.warn_data_percentage=75
 PREF1=runtime.tools.avrdude.path="$TOOLSA"
 PREF2=runtime.tools.arduinoOTA.path="$TOOLSA"
 PREF3=runtime.tools.avr-gcc.path="$TOOLSA"
