@@ -30,6 +30,7 @@ Features
 Changelog
 ---------
 * Feb/2017: Ease the work with multiple .ino files. You need to make a "amake clean" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake clean" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
+* Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements.
 
 Configuration
 -------------
@@ -40,12 +41,24 @@ If you don't have preferences  just put it right in your home folder.
 Once you downloaded and extracted the amake-master.zip from this project, you need to move the amake file to a folder named "bin" in you home folder (you must create it if not there already) once you have the file in place open it for edition with your simple text tool (gedit in Gnome, leafpad in LXDE, kedit in KDE, etc.) then locate a line like this:
 
 ```
-APATH="~/Documentos/Programación/Arduino/arduino-1.8.0"
+APATH="~/Documentos/Programación/Arduino/arduino-1.8.1"
 ```
 
 Then put the path you take note in the previous steps (where you placed the arduino IDE folder) in this line between the "" with no leading or trailing spaces.
 
-Now you need to make the amake file executable, you can use your graphic interface tool (right click > properties > make executable) or using the basic command line, like this:
+Now locate a line like this: (it's a few lines below the previous I mentioned)
+
+```
+IDEVER="10801"
+```
+
+That makes reference to the actual version number of the Arduino IDE, so, you need to change it to the correct value for the compiling tool-chain to work in optimum shape (I have noticed a size optimization with just the change of this value from one version to the other)
+
+The coding scheme is like this: you will swap every dot in the version number with a zero "0" and that's all; for example in this case we use the 1.8.1 version so the value will be 10801.
+
+If you are using the same version that I state here then nothing needs to be changed.
+
+Next step is to make the amake file executable, you can use your graphic interface tool (right click > properties > make executable) or using the basic command line, like this:
 
 ```
 chmod +x ~/bin/amake
