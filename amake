@@ -88,6 +88,9 @@ ADUDECONF="$TOOLSA"/etc/avrdude.conf
 PROG=$3
 PORT=$4
 
+# serial most used watermark for chinese arduinos
+SERID="1a86_USB2.0-Ser"
+
 # create the tmp dir
 mkdir /tmp/amake 2> /dev/null
 mkdir "$BPATH" 2> /dev/null
@@ -166,7 +169,6 @@ whichmcu() {
 # Compiler function
 compile() {
     ##### make it
-    # first pass
     "$SOFT" -dump-prefs -logger=human -hardware "$DHW" -hardware "$UHW" \
         -tools "$TOOLSA" -tools "$TOOLSB" -built-in-libraries "$DLIB" \
         -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
@@ -192,6 +194,13 @@ compile() {
 # Upload function
 uploadit() {
     # upload it
+
+    # check for the port auto detection
+    if [ -z "$PORT"] ; then
+        echo "Arduino serial port no specified, try to auto detect it."
+        serial_detect
+    fi
+
     case "$PROG" in
         arduino)
             "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG -P $PORT \
@@ -216,10 +225,12 @@ usage() {
     echo " "
     echo " Cleaning the build environment:"
     echo " ==============================="
-    echo " amake clean <file>"
+    echo " amake clean [file]"
     echo "       * 'file' is the main project file that must have the "
     echo "         .ino extension in it and must not contain a dot ('.')"
     echo "         or a path on it, just the name.ino"
+    echo "         If you have successfully compiled the project before"
+    echo "         with amake the 'file' parameter is optional"
     echo " "
     echo "       This also unset the temp file that points to the main file in"
     echo "         a multi .ino file scenario"
@@ -228,12 +239,14 @@ usage() {
     echo " "
     echo " Compiling a sketch:"
     echo " ==================="
-    echo " amake <arduino_board_alias> <file>"
+    echo " amake <arduino_board_alias> [file]"
     echo "      * 'arduino_board_alias' refers to the specific board, see "
     echo "         'amake list' output for details."
     echo "      * 'file' is the main project file that must have the "
     echo "         .ino extension in it and must not contain a dot ('.')"
     echo "         or a path on it, just the name.ino"
+    echo "         If you have successfully compiled the project before"
+    echo "         with amake the 'file' parameter is optional"
     echo " "
     echo "      In a multi .ino file scenario you must make first a 'clean'"
     echo "        procedure and then compile against the main file, after"
@@ -245,12 +258,15 @@ usage() {
     echo " "
     echo " Downloading the firmware to a board:"
     echo " ===================================="
-    echo " amake <arduino_board_alias> <file> <programmer> <serialport>"
+    echo " amake <arduino_board_alias> <file> <programmer> [serialport]"
     echo "      * 'arduino_board_alias' refers to the specific board see the "
     echo "        'amake list' output"
     echo "      * 'file' is the main project file that must have the .ino extension"
     echo "      * 'programmer' is the programmer type, see 'amake prog' output"
     echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
+    echo "        amake will try to determine the serial port if omitted, if that"
+    echo "        doesn't work, you must write it on the command line;"
+    echo "        amake is prepared to detect all chips based on the CH340"
     echo " "
     echo " Example: amake uno test.ino arduino /dev/ttyUSB0"
     echo " "
@@ -303,6 +319,26 @@ prog() {
     echo " "
 }
 
+# try to detect a valid serial port
+serial_detect() {
+    for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
+        devname="$(udevadm info -q name -p ${sysdevpath%/dev})"
+        [[ "$devname" == "bus/"* ]] && continue
+        eval "$(udevadm info -q property --export -p ${sysdevpath%/dev})"
+        [[ -z "$ID_SERIAL" ]] && continue
+        TYPE=`echo $ID_SERIAL| grep "$SERID"`
+        [[ -z "$TYPE" ]] && continue
+        PORT="/dev/$devname"
+        echo "Autodetected serial port is: $PORT"
+        break
+    done
+
+    # default if can't be autodetected
+    if [ -n "$PORT"] ; then
+        echo "Can't auto detect the arduino port, defaulting to /dev/ttyUSB0"
+        PORT="/dev/ttyUSB0"
+    fi
+}
 
 # do it
 case "$1" in

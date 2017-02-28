@@ -30,7 +30,8 @@ Features
 Changelog
 ---------
 * Feb/2017: Ease the work with multiple .ino files. You need to make a "amake clean" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake clean" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
-* Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements.
+* Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements
+* Feb/2017: Auto detection of the serial port; for now just USB-Serial adapters based on the CH340/341 chips.
 
 Configuration
 -------------
@@ -76,6 +77,8 @@ Take a peek on the Geany help, the %d is swapped by the actual file path and the
 
 'uno' is the board name (you can get details running 'amake list')
 
+Once you successfully compiled it once, amake will ignore the %f parameter; this trick will be very useful when you try to compile a multi file project as you can compile against any file in the project, always after compiling it first again the main file ('amake clean' will reset this)
+
 **Download**
 
 ```
@@ -86,6 +89,8 @@ In this case the new parameters are the word 'arduino' that is the  programmer t
 
 The '/dev/ttyUSB1' is the USB port in which the arduino is connected.
 
+The port part can be omitted if you use a Chinese arduino or a cheap USB-Serial adapter as amake will autodetect it. If amake can't detect the port it will default to /dev/ttyUSB0
+
 **Clean**
 
 Some times you may need to clean you build environment, this common task if set by a command like this:
@@ -94,12 +99,14 @@ Some times you may need to clean you build environment, this common task if set 
 cd %d ; amake clean %f
 ```
 
+The "clean" parameter also unset the property of amake in which you can compile a project against any .ino file in the project folder; after a "clean" you must always compile the project against the main file to gain that feature again.
+
 Other IDE tools may need to switch parameters but the ones showed here are very common ones and I know you can adapt it to your preferred IDE tool.
 
 TODO
 ----
 
-There is  limited board support by now, if you know bash you can hack the code to ad your board (don't forget to notify the working changes to me to include in the code) or simply write and email to me and I will work with you to get your board supported.
+There is limited board support by now, if you know bash you can hack the code to add your board (don't forget to notify the working changes to me to include them in the code) or simply write and email to me and I will work with you to get your board supported.
 
 Contributing
 ------------
