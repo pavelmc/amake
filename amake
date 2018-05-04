@@ -29,13 +29,13 @@
 ################################################################################
 # It must point to where you extracted the arduino ide .xz file, please
 # keep it between " " to be safe.
-APATH="/home/pavel/Documentos/Software/Arduino/arduino-1.8.1"
+APATH="/home/pavel/Documentos/Software/Arduino/latest-ide"
 
 # The Arduino IDE version number.
 ################################################################################
 # It's built swapping the dots in the version by zeros, for example:
 # version 1.6.9 is write as 10609, please keep it between " " to be safe.
-IDEVER="10801"
+IDEVER="10803"
 
 ################################################################################
 # From this point and below you don't need to do any change, unless you are a
@@ -54,7 +54,7 @@ if [ -e ".amake" ] ; then
     N=`cat .amake`
 else
     # not set, parse from command line
-    N=`echo $2 | cut -d "." -f 1`
+    N=`echo $2 | rev | cut -d "." -f 2- | rev`
 fi
 
 # Preserve actual directory
@@ -65,12 +65,12 @@ BPATH=/tmp/amake/"$N"_buid
 
 # default paths
 SOFT="$APATH"/arduino-builder
-DHW="$APATH"/hardware
+DHW="$APATH/hardware"
 UHW="$HOME/Arduino/hardware"
-DLIB="$APATH"/libraries
+DLIB="$APATH/libraries"
 ULIB="$HOME/Arduino/libraries"
-TOOLSB="$APATH"/tools-builder
-TOOLSA="$DHW"/tools/avr
+TOOLSB="$APATH/tools-builder"
+TOOLSA="$DHW/tools/avr"
 FILE="$N".ino
 BOARD="$1"
 

@@ -29,6 +29,7 @@ Features
 
 Changelog
 ---------
+* Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.
 * Feb/2017: Ease the work with multiple .ino files. You need to make a "amake clean" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake clean" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
 * Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements
 * Feb/2017: Auto detection of the serial port; for now just USB-Serial adapters based on the CH340/341 chips.
@@ -37,12 +38,12 @@ Configuration
 -------------
 You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like, but take note of the place (full path).
 
-If you don't have preferences  just put it right in your home folder.
+If you don't have preferences  just put it right in your home folder. I like to have it elsewhere and make a link to that folder named in "~/Documentos/Software/Arduino/latest-ide", but please note (write it down) the full path.
 
 Once you downloaded and extracted the amake-master.zip from this project, you need to move the amake file to a folder named "bin" in you home folder (you must create it if not there already) once you have the file in place open it for edition with your simple text tool (gedit in Gnome, leafpad in LXDE, kedit in KDE, etc.) then locate a line like this:
 
 ```
-APATH="~/Documentos/Programación/Arduino/arduino-1.8.1"
+APATH="~/Documentos/Programación/Arduino/latest-ide"
 ```
 
 Then put the path you take note in the previous steps (where you placed the arduino IDE folder) in this line between the "" with no leading or trailing spaces.
@@ -50,12 +51,12 @@ Then put the path you take note in the previous steps (where you placed the ardu
 Now locate a line like this: (it's a few lines below the previous I mentioned)
 
 ```
-IDEVER="10801"
+IDEVER="10803"
 ```
 
 That makes reference to the actual version number of the Arduino IDE, so, you need to change it to the correct value for the compiling tool-chain to work in optimum shape (I have noticed a size optimization with just the change of this value from one version to the other)
 
-The coding scheme is like this: you will swap every dot in the version number with a zero "0" and that's all; for example in this case we use the 1.8.1 version so the value will be 10801.
+The coding scheme is like this: you will swap every dot in the version number with a zero "0" and that's all; for example in this case we use the 1.8.3 version so the value will be 10803.
 
 If you are using the same version that I state here then nothing needs to be changed.
 
