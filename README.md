@@ -18,19 +18,18 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 ## Features ##
 
-* This is Linux only tool, developed in Ubuntu 16.04 TLS
+* This is Linux only tool, developed in Ubuntu 16.04 TLS, and must work with other linux with no problem.
 * Full arduino integration: same folder structure, same tools, same software.
-* Full compatibility with users of the Arduino IDE software.
 * You need only to know 3 things:
     * What is your board
     * What file you need to compile
     * What is the USB port name where the arduino is attached
-* It will compile all platforms and boards that are installed in your local Arduino Ide environment; for the record you will using the same Arduino IDE tools but with no GUI, nice.
+* Boards and lib support? It will compile all platforms and boards that are installed in your local Arduino Ide environment (using the libs you have installed); for the record you will using the same Arduino IDE tools but with no GUI, nice.
 * This is free software under the GNU GPL version 3.0
 
 ## Changelog ##
 
-Version 1.0 (**Warning** from this version and forward I changes the command line parameters.)
+Version 1.0 (**Warning** from this version and forward I changed the command line parameters.)
 
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to [TODO] for asking support for a non native arduino board, that request push me to give some love to this project again.
 * Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.

@@ -424,7 +424,7 @@ case "$1" in
 		;;
 
 	*)
-		# nothing or real parameters
+		# nothing else
 		usage
 		;;
 esac
