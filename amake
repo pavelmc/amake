@@ -115,8 +115,16 @@ which_board() {
 			MCUSTR="adafruit:avr:flora8"
 			;;
 
-		mc128_16MHz)
+		mc128e16MHz)
 			MCUSTR="MegaCore:avr:128:BOD=2v7,LTO=Os,clock=16MHz_external"
+			;;
+
+		mega2560)
+			MCUSTR="arduino:avr:mega:cpu=atmega2560"
+			;;
+
+		mega)
+			MCUSTR="arduino:avr:mega:cpu=atmega1280"
 			;;
 
 		*)
@@ -302,7 +310,9 @@ list() {
 	echo "       trinket_m0 = Adafruit Trinket M0 (samd)"
 	echo "            flora = Adafruit Flora (avr)"
 	echo "       arduino_m0 = Arduino M0 (samd)"
-	echo "      mc128_16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
+	echo "      mc128e16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
+	echo "         mega2560 = Arduino Mega 2560 (Mega, cpu ATMega2560)"
+	echo "             mega = Arduino Mega (Mega, cpu ATMega1280)"
 	echo " "
 	echo "You can know more about how the alias and real names work by reading"
 	echo "the README.md file for this project in the section named:"
