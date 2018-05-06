@@ -101,16 +101,16 @@ which_board() {
 			MCUSTR="arduino:avr:pro:cpu=16MHzatmega328"
 			;;
 		nano)
-			MCUSTR="arduino:avr:nano:cpu=8MHzatmega168"
+			MCUSTR="arduino:avr:nano:cpu=atmega168"
 			;;
 		nano328)
-			MCUSTR="arduino:avr:nano:cpu=8MHzatmega328"
+			MCUSTR="arduino:avr:nano:cpu=atmega328"
 			;;
 		ng)
 			MCUSTR="arduino:avr:atmegang:cpu=atmega168"
 			;;
 		ng8)
-			MCUSTR="atmegang:cpu=atmega8"
+			MCUSTR="arduino:avr:atmegang:cpu=atmega8"
 			;;
 
 		# user requested aliases
