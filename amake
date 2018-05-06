@@ -333,24 +333,26 @@ valid_file() {
 		
 		# message
 		echo "> file to verify is: $FILE"
-		
-		# Persisten temp build path
-		BPATH=/tmp/amake/"$N_$MCUSTR"_build
-		
-		# silently ignore errors, during creation of the build path
-		mkdir "/tmp/amake/" &> /dev/null
-		mkdir "$BPATH" &> /dev/null
 	fi
+}
+
+
+# manage the build path
+build_path() {
+	# $1 is the MCUSTR
+	# $2 is the filename
+	
+	# create or touch the general build path folder
+	mkdir "/tmp/amake/" &> /dev/null
+	
+	# assemple the persisten temp build path
+	BPATH="/tmp/amake/$1_$2"
+	mkdir "$BPATH" &> /dev/null
 }
 
 
 # do it
 case "$1" in
-	use)
-		# print usage
-		usage
-		;;
-
 	list)
 		# print supported boards
 		list
@@ -382,6 +384,9 @@ case "$1" in
 		# file passed?
 		valid_file "$3"
 
+		# touch or create the persistent build path
+		build_path "$MCUSTR" "$FILE"
+
 		# now we can compile
 		compile
 		;;
@@ -400,6 +405,9 @@ case "$1" in
 		
 		# file passed?
 		valid_file "$3"
+
+		# touch or create the persistent build path
+		build_path "$MCUSTR" "$FILE"
 
 		# if posrt is passed use it if not try to auto detect
 		if [ -z "$4" ] ;  then
