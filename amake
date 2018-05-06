@@ -57,8 +57,8 @@ SERID="1a86_USB2.0-Ser"
 # forward we can compile against any file in the sketch.
 filename() {
 	if [ -e ".amake" ] ; then
-		# it's set before, load it
-		N=`cat .amake`
+		# load the variables from the file
+		. .amake
 	else
 		# not set, parse from command line
 		N=`echo $1 | rev | cut -d "." -f 2- | rev`
@@ -66,6 +66,18 @@ filename() {
 	
 	# set it
 	FILE="$N".ino
+}
+
+
+# set variables in the amake local file
+set_amake() {
+	# Set two variables in the .amake file in the local directory
+	# $1 BOARD => MCUSTR for the board
+	# $2 filename.ino => filename, must remove the .ino extension to store
+
+	N=`echo $2 | rev | cut -d "." -f 2 | rev`  
+	echo "N=\"$N\""   > "$ADIR/".amake
+	echo "BOARD=\"$1\"" >> "$ADIR/".amake
 }
 
 
@@ -128,8 +140,27 @@ which_board() {
 			;;
 
 		*)
-			# if not in list pass it along
-			MCUSTR="$1"
+			# not a preset alias
+			# if in "oem:platform:board" patter just return it
+			# else try to load it from the cached value
+			if [ -z "$(echo $1 | grep -e .*\: )" ] ; then
+				# not in "oem:platform:board" form, try to load from cache
+				if [ -z "$BOARD" ] ; then
+					# no board passed or loadable, message
+					echo "Did you passed a board value?"
+					echo "It must be in \"oem:platform:board\" format to make sense"
+					echo "if not an alias, see README.md file"
+
+					# return error
+					exit 1
+				else
+					# use the one in chache
+					MCUSTR="$BOARD"
+				fi
+			else
+				# it seems like a MCUSTR already, return it
+				MCUSTR="$1"
+			fi
 			;;
 	esac
 }
@@ -139,16 +170,16 @@ which_board() {
 compile() {
 	# change path
 	cd "$APATH"
-	
+
 	# compile it
 	"$APATH/arduino" --verify --board "$MCUSTR" \
 		--pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
-	
+
 	# if compilation worked save the main file name into a hidden file on
 	# the project folder
 	if [ "$?" == "0" ] ; then
 		# all good, save the project filename on a temp config one
-		echo $N > "$ADIR/".amake
+		set_amake "$MCUSTR" "$FILE"
 	fi
 }
 
@@ -166,7 +197,7 @@ upload() {
 	# the project folder
 	if [ "$?" == "0" ] ; then
 		# all good, save the project filename on a temp config one
-		echo $N > "$ADIR/".amake
+		set_amake "$MCUSTR" "$FILE"
 	fi
 }
 
@@ -301,37 +332,27 @@ serial_detect() {
 
 # validate if a board was passed and put that in the environment
 valid_board() {
-	# board type passed?
-	if [ -z "$1" ] ; then
-		# no board passed, show usage
-		usage
-		
-		# exit with error
-		exit 1
-	else
-		# select the FQBN if applicable
-		which_board "$1"
-		
-		# message
-		echo "> board to verify against is: $MCUSTR"
-	fi
+	# select the MCUSTR from the passed alias or the cache
+	which_board "$1"
+	
+	# message
+	echo "> board to verify against is: $MCUSTR"
 }
 
 
 # validate if a filename was passed and puth than in the environment
 valid_file() {
-	# ino file passed?
-	if [ -z "$1" ] ; then
-		# no file passed, show usage
+	# get the filename, either form cache or from the parameter
+	filename "$1"
+
+	if [ "$FILE" == ".ino" ] ; then
+		# no file passed, not in cache, show usage
 		usage
 		
 		# exit with error
 		exit 1
 	else
-		# select the filename
-		filename "$1"
-		
-		# message
+		# message 
 		echo "> file to verify is: $FILE"
 	fi
 }
@@ -371,18 +392,18 @@ case "$1" in
 
 	"-v")
 		# verify, aka: compile
-		# $2 <board>
-		# $3 <file>
+		# $2 <board> optional?
+		# $3 <file> options?
 
 		# mesaage
 		echo "Verify the sketch"
 		echo "================="
 
-		# board type passed?
-		valid_board "$2"
-
 		# file passed?
 		valid_file "$3"
+
+		# board type passed?
+		valid_board "$2"
 
 		# touch or create the persistent build path
 		build_path "$MCUSTR" "$FILE"
@@ -400,11 +421,11 @@ case "$1" in
 		echo "Upload the sketch"
 		echo "================="
 
-		# board type passed?
-		valid_board "$2"
-		
 		# file passed?
 		valid_file "$3"
+
+		# board type passed?
+		valid_board "$2"
 
 		# touch or create the persistent build path
 		build_path "$MCUSTR" "$FILE"
