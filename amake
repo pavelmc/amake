@@ -6,6 +6,7 @@
 #
 # Author: Pavel Milanes, pavelmc@gmail.com, CO7WT
 #
+# Rev: 1.0 / May 2018: full use of the Arduino IDE CLI
 # Rev: 0.2 / Feb 2017
 #
 # Latest version is always found on the Github repository (URL below)
@@ -31,12 +32,6 @@
 # keep it between " " to be safe.
 APATH="/home/pavel/Documentos/Software/Arduino/latest-ide"
 
-# The Arduino IDE version number.
-################################################################################
-# It's built swapping the dots in the version by zeros, for example:
-# version 1.6.9 is write as 10609, please keep it between " " to be safe.
-IDEVER="10803"
-
 ################################################################################
 # From this point and below you don't need to do any change, unless you are a
 # developer and want to tweak or change something; hack are always welcomed
@@ -47,8 +42,9 @@ IDEVER="10803"
 ################################################################################
 # If we use several files (.ino files) we need to know which is the main file
 # so, the trick is to make the first compilation against the main file and upon
-# success it will set it in a hidden file (linux); from this point
-# forward we can compile against any file in the sketch.
+# success it will set it in a hidden file; from this point forward we can 
+# compile against any file in the sketch.
+
 if [ -e ".amake" ] ; then
     # it's set before, load it
     N=`cat .amake`
@@ -56,9 +52,6 @@ else
     # not set, parse from command line
     N=`echo $2 | rev | cut -d "." -f 2- | rev`
 fi
-
-# Preserve actual directory
-ADIR=`pwd`
 
 # Build path
 BPATH=/tmp/amake/"$N"_buid
@@ -226,27 +219,25 @@ usage() {
     echo " Cleaning the build environment:"
     echo " ==============================="
     echo " amake clean [file]"
-    echo "       * 'file' is the main project file that must have the "
-    echo "         .ino extension in it and must not contain a dot ('.')"
-    echo "         or a path on it, just the name.ino"
-    echo "         If you have successfully compiled the project before"
-    echo "         with amake the 'file' parameter is optional"
+    echo "      * 'file' is the main project file that must have the "
+    echo "        .ino extension, for example blink.ino"
+    echo "        If you have successfully compiled the project before"
+    echo "        with amake the 'file' parameter is optional"
     echo " "
-    echo "       This also unset the temp file that points to the main file in"
-    echo "         a multi .ino file scenario"
+    echo "      This also unset/erase the temp file that points to"
+    echo "         the main file in a multi .ino file scenario"
     echo " "
-    echo " Example: amake clean test.ino"
+    echo "         Example: amake clean blink.ino"
     echo " "
     echo " Compiling a sketch:"
     echo " ==================="
     echo " amake <arduino_board_alias> [file]"
     echo "      * 'arduino_board_alias' refers to the specific board, see "
-    echo "         'amake list' output for details."
+    echo "        'amake list' output for details."
     echo "      * 'file' is the main project file that must have the "
-    echo "         .ino extension in it and must not contain a dot ('.')"
-    echo "         or a path on it, just the name.ino"
-    echo "         If you have successfully compiled the project before"
-    echo "         with amake the 'file' parameter is optional"
+    echo "        .ino extension, for example blink.ino"
+    echo "        If you have successfully compiled the project before"
+    echo "        with amake the 'file' parameter is optional"
     echo " "
     echo "      In a multi .ino file scenario you must make first a 'clean'"
     echo "        procedure and then compile against the main file, after"
