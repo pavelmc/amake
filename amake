@@ -38,343 +38,421 @@ APATH="/home/pavel/Documentos/Software/Arduino/latest-ide"
 # and please do share your mods with me.
 ################################################################################
 
-# Test to find the configured name of the main file in multi-file cases.
-################################################################################
-# If we use several files (.ino files) we need to know which is the main file
-# so, the trick is to make the first compilation against the main file and upon
-# success it will set it in a hidden file; from this point forward we can 
-# compile against any file in the sketch.
-
-if [ -e ".amake" ] ; then
-    # it's set before, load it
-    N=`cat .amake`
-else
-    # not set, parse from command line
-    N=`echo $2 | rev | cut -d "." -f 2- | rev`
-fi
-
-# Build path
-BPATH=/tmp/amake/"$N"_buid
+# preserve actual directory
+ADIR=`pwd`
 
 # default paths
-SOFT="$APATH"/arduino-builder
-DHW="$APATH/hardware"
-UHW="$HOME/Arduino/hardware"
-DLIB="$APATH/libraries"
-ULIB="$HOME/Arduino/libraries"
-TOOLSB="$APATH/tools-builder"
-TOOLSA="$DHW/tools/avr"
-FILE="$N".ino
-BOARD="$1"
-
-# some needed flags
-WRN=none
-PREF0=build.warn_data_percentage=75
-PREF1=runtime.tools.avrdude.path="$TOOLSA"
-PREF2=runtime.tools.arduinoOTA.path="$TOOLSA"
-PREF3=runtime.tools.avr-gcc.path="$TOOLSA"
-VERBOSE="-verbose"
-
-# avrdude settings
-ADUDE="$TOOLSA"/bin/avrdude
-ADUDECONF="$TOOLSA"/etc/avrdude.conf
-PROG=$3
-PORT=$4
+#~ DHW="$APATH/hardware"
+#~ UHW="$HOME/Arduino/hardware"
+#~ LHW="$HOME/.arduino15/packages"
 
 # serial most used watermark for chinese arduinos
 SERID="1a86_USB2.0-Ser"
 
-# create the tmp dir
-mkdir /tmp/amake 2> /dev/null
-mkdir "$BPATH" 2> /dev/null
+# Test to find the configured name of the main file in multi-file cases.
+################################################################################
+# If we use several files (.ino files) we need to know which is the main file
+# so, the trick is to make the first compilation against the main file and upon
+# success it will set it in a hidden file (linux); from this point
+# forward we can compile against any file in the sketch.
+filename() {
+	if [ -e ".amake" ] ; then
+		# it's set before, load it
+		N=`cat .amake`
+	else
+		# not set, parse from command line
+		N=`echo $1 | rev | cut -d "." -f 2- | rev`
+	fi
+	
+	# set it
+	FILE="$N".ino
+}
 
-# Test for the local hardware and libraries folders
-mkdir $UHW 2> /dev/null
-mkdir $ULIN 2> /dev/null
 
-# This function will set the MCU, MCU string and baudrate needed later for
-# build and download with avrdude, here is where you must add new boards
-# if you need to, if so please send me your tested mods for inclusion
-whichmcu() {
-    # select the proper MCU for compilation, MCU & baudrate for avrdude
-    case "$1" in
-        uno)
-            # verified
-            MCU=atmega328p
-            MCUSTR=uno
-            BRATE=115200
-            ;;
-        pro5v328)
-            # verified
-            MCU=atmega328p
-            MCUSTR="pro:cpu=16MHzatmega328"
-            BRATE=57600
-            ;;
-        pro328)
-            # verified
-            MCU=atmega328p
-            MCUSTR="pro:cpu=8MHzatmega328"
-            BRATE=57600
-            ;;
-        pro5v)
-            # verified
-            MCU=atmega168
-            MCUSTR="pro:cpu=16MHz$MCU"
-            BRATE=19200
-            ;;
-        pro)
-            # verified
-            MCU=atmega168
-            MCUSTR="pro:cpu=8MHz$MCU"
-            BRATE=19200
-            ;;
-            ################## unverified below this line #################
-        nano328)
-            MCU=atmega328p
-            MCUSTR="nano:cpu=8MHzatmega328"
-            BRATE=19200
-            ;;
-        nano)
-            MCU=atmega168
-            MCUSTR="nano:cpu=8MHz$MCU"
-            BRATE=19200
-            ;;
-        ng)
-            MCU=atmega168
-            MCUSTR="atmegang:cpu=$MCU"
-            BRATE=19200
-            ;;
-        ng8)
-            MCU=atmega8
-            MCUSTR="atmegang:cpu=$MCU"
-            BRATE=19200
-            ;;
-        *)
-            echo "Wrong board selection or not covered yet"
-            echo "see 'amake usage' for details; then, if not covered"
-            echo "write to the developer at pavelmc at gmail dot com"
-            exit 1
-            ;;
-    esac
+# Translate the alias for a board to the FQBN from a pre-strablished list of classic ones or directly 
+# for newer boards
+which_board() {
+	case "$1" in
+		uno)
+			MCUSTR="arduino:avr:uno"
+			;;
+		pro)
+			MCUSTR="arduino:avr:pro:cpu=8MHzatmega168"
+			;;
+		pro5v)
+			MCUSTR="arduino:avr:pro:cpu=16MHzatmega168"
+			;;
+		pro328)
+			MCUSTR="arduino:avr:pro:cpu=8MHzatmega328"
+			;;
+		pro5v328)
+			MCUSTR="arduino:avr:pro:cpu=16MHzatmega328"
+			;;
+		nano)
+			MCUSTR="arduino:avr:nano:cpu=8MHzatmega168"
+			;;
+		nano328)
+			MCUSTR="arduino:avr:nano:cpu=8MHzatmega328"
+			;;
+		ng)
+			MCUSTR="arduino:avr:atmegang:cpu=atmega168"
+			;;
+		ng8)
+			MCUSTR="atmegang:cpu=atmega8"
+			;;
+
+		# user requested aliases
+		# ====================================================
+		trinket_m0)
+			MCUSTR="adafruit:samd:adafruit_trinket_m0"
+			;;
+
+		arduino_m0)
+			MCUSTR="arduino:samd:mzero_bl"
+			;;
+
+		flora)
+			MCUSTR="adafruit:avr:flora8"
+			;;
+
+		mc128_16MHz)
+			MCUSTR="MegaCore:avr:128:BOD=2v7,LTO=Os,clock=16MHz_external"
+			;;
+
+		*)
+			# if not in list pass it along
+			MCUSTR="$1"
+			;;
+	esac
 }
 
 
 # Compiler function
 compile() {
-    ##### make it
-    "$SOFT" -dump-prefs -logger=human -hardware "$DHW" -hardware "$UHW" \
-        -tools "$TOOLSA" -tools "$TOOLSB" -built-in-libraries "$DLIB" \
-        -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
-        -ide-version=$IDEVER -build-path "$BPATH" -warnings=$WRN \
-        -prefs="$PREF0" -prefs="$PREF1" -prefs="$PREF2" \
-        -prefs="$PREF3" $VERBOSE "$FILE" && \
-    "$SOFT" -compile -logger=human -hardware "$DHW" -hardware "$UHW" \
-        -tools "$TOOLSA" -tools "$TOOLSB" -built-in-libraries "$DLIB" \
-        -libraries "$ULIB" -fqbn="arduino:avr:$MCUSTR" \
-        -ide-version=$IDEVER -build-path "$BPATH" -warnings=$WRN \
-        -prefs="$PREF0" -prefs="$PREF1" -prefs="$PREF2" \
-        -prefs="$PREF3" $VERBOSE "$FILE"
-
-    # if compilation worked save the main file name into a hidden file on
-    # the project folder
-    if [ "$?" == "0" ] ; then
-        # all good, save the project filename on a temp config one
-        echo $N > "$ADIR/".amake
-    fi
+	# change path
+	cd "$APATH"
+	
+	# compile it
+	"$APATH/arduino" --verify --board "$MCUSTR" \
+		--pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
+	
+	# if compilation worked save the main file name into a hidden file on
+	# the project folder
+	if [ "$?" == "0" ] ; then
+		# all good, save the project filename on a temp config one
+		echo $N > "$ADIR/".amake
+	else
+		case "$?" in
+			1)
+				# verify or upload failed
+				echo "Oops! something is wrong."
+				echo "If the error is related to an invalid board name you want to do a read of the README.md file in the amake project directory, in the section \"Board aliases and real names\" to know how to fix that."
+				;;
+			2)
+				# sketch not found
+				echo "Oops! please check that your sketch file exist."
+				;;
+			3)
+				# invalid argument for command line
+				echo "Oops! that didn't work. (CLI fail)"
+				;;
+			4)
+				# pref does not exist
+				echo "Oops! that didn't work. (pref fail)"
+				;;
+			*)
+				# pref does not exist
+				echo "Oops! that didn't work. (Unknown error)"
+				;;
+		esac
+	fi
 }
 
 
 # Upload function
-uploadit() {
-    # upload it
-
-    # check for the port auto detection
-    if [ -z "$PORT"] ; then
-        echo "Arduino serial port no specified, try to auto detect it."
-        serial_detect
-    fi
-
-    case "$PROG" in
-        arduino)
-            "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG -P $PORT \
-            -b $BRATE -D -U flash:w:"$BPATH"/"$FILE".hex:i -v
-            ;;
-        pickit)
-            "$ADUDE" -C "$ADUDECONF" -p $MCU -c $PROG \
-            -D -U flash:w:"$BPATH"/"$FILE".hex:i -v -i 1
-            ;;
-        *)
-            echo "Error: programmer not recognized."
-            exit 1
-            ;;
-    esac
+upload() {
+	# change path
+	cd "$APATH"
+	
+	# compile it
+	"$APATH/arduino" --upload --board "$MCUSTR" --port "$PORT" \
+		--pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
+	
+	# if compilation worked save the main file name into a hidden file on
+	# the project folder
+	if [ "$?" == "0" ] ; then
+		# all good, save the project filename on a temp config one
+		echo $N > "$ADIR/".amake
+	else
+		case "$?" in
+			1)
+				# verify or upload failed
+				echo "Oops! something is wrong."
+				echo "If the error is related to an invalid board name you want to do a read of the README.md file in the amake project directory, in the section \"Board aliases and real names\" to know how to fix that."
+				;;
+			2)
+				# sketch not found
+				echo "Oops! please check that your sketch file exist."
+				;;
+			3)
+				# invalid argument for command line
+				echo "Oops! that didn't work. (CLI fail)"
+				;;
+			4)
+				# pref does not exist
+				echo "Oops! that didn't work. (pref fail)"
+				;;
+			*)
+				# pref does not exist
+				echo "Oops! that didn't work. (Unknown error)"
+				;;
+		esac
+	fi
 }
 
 
 # Usage show function
 usage() {
-    echo "'amake' - Simple interface for the arduino-builder command of Arduino"
-    echo "Usage: this script has 3 main modes: cleaning, compiling & uploading"
-    echo " "
-    echo " Cleaning the build environment:"
-    echo " ==============================="
-    echo " amake clean [file]"
-    echo "      * 'file' is the main project file that must have the "
-    echo "        .ino extension, for example blink.ino"
-    echo "        If you have successfully compiled the project before"
-    echo "        with amake the 'file' parameter is optional"
-    echo " "
-    echo "      This also unset/erase the temp file that points to"
-    echo "         the main file in a multi .ino file scenario"
-    echo " "
-    echo "         Example: amake clean blink.ino"
-    echo " "
-    echo " Compiling a sketch:"
-    echo " ==================="
-    echo " amake <arduino_board_alias> [file]"
-    echo "      * 'arduino_board_alias' refers to the specific board, see "
-    echo "        'amake list' output for details."
-    echo "      * 'file' is the main project file that must have the "
-    echo "        .ino extension, for example blink.ino"
-    echo "        If you have successfully compiled the project before"
-    echo "        with amake the 'file' parameter is optional"
-    echo " "
-    echo "      In a multi .ino file scenario you must make first a 'clean'"
-    echo "        procedure and then compile against the main file, after"
-    echo "        that you can compile the entire project against any file"
-    echo "        (or none) unless you rename the main file."
-    echo " "
-    echo " Example: amake uno test.ino"
-    echo " "
-    echo " "
-    echo " Downloading the firmware to a board:"
-    echo " ===================================="
-    echo " amake <arduino_board_alias> <file> <programmer> [serialport]"
-    echo "      * 'arduino_board_alias' refers to the specific board see the "
-    echo "        'amake list' output"
-    echo "      * 'file' is the main project file that must have the .ino extension"
-    echo "      * 'programmer' is the programmer type, see 'amake prog' output"
-    echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
-    echo "        amake will try to determine the serial port if omitted, if that"
-    echo "        doesn't work, you must write it on the command line;"
-    echo "        amake is prepared to detect all chips based on the CH340"
-    echo " "
-    echo " Example: amake uno test.ino arduino /dev/ttyUSB0"
-    echo " "
-    echo " "
-    echo " You can get more info with the 'amake list' and 'amake prog' options"
-    echo " by now there is a limited boards support (the ones I can test) and"
-    echo " only two programmers available."
-    echo " "
-    echo " You can contribute testing other boards and help the developer to get"
-    echo " them supported, please do contact me: pavelmc@gmail.com"
-    echo " "
-    echo " Project website: https://github.com/pavelmc/amake/"
-    echo " "
+	echo "'amake' - Simple interface for the Arduino IDE CLI"
+	echo "==================================================="
+	echo "Usage: this script has 3 main modes:"
+	echo "  * Cleaning the environment"
+	echo "  * Verify the sketch (aka compile it)"
+	echo "  * Uploading it to the board"
+	echo " "
+	echo " Cleaning the build environment:"
+	echo " ==============================="
+	echo " amake -c [file]"
+	echo "      * 'file' is the main project file that must have the "
+	echo "        .ino extension, for example blink.ino"
+	echo "        If you have successfully compiled the project before"
+	echo "        with amake the 'file' parameter is optional"
+	echo " "
+	echo "      This force a cleaning up of all build environments for"
+	echo "        all the platforms, boards and sketchs in this PC"
+	echo " "
+	echo "      Example: amake -c blink.ino"
+	echo " "
+	echo " Verify (Compile) a sketch:"
+	echo " =========================="
+	echo " amake -v <arduino_board_alias> [file]"
+	echo "      * 'arduino_board_alias' refers to the specific board, see "
+	echo "        'amake list' output for details."
+	echo "      * 'file' is the main project file that must have the "
+	echo "        .ino extension, for example blink.ino"
+	echo "        If you have successfully compiled the project before"
+	echo "        with amake the 'file' parameter is optional"
+	echo " "
+	echo "      In a multi .ino file scenario you must make first a 'clean'"
+	echo "        procedure and then compile against the main file, after"
+	echo "        that you can compile the entire project against any file"
+	echo "        (or none) unless you rename the main file."
+	echo " "
+	echo "      Example: amake -v uno blink.ino"
+	echo " "
+	echo " "
+	echo " Uploading the firmware to a board:"
+	echo " ===================================="
+	echo " amake -u <arduino_board_alias> <file> [serialport]"
+	echo "      * 'arduino_board_alias' refers to the specific board see the "
+	echo "        'amake list' output"
+	echo "      * 'file' is the main project file that must have the .ino extension"
+	echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
+	echo "        amake will try to determine the serial port if omitted,"
+	echo "        if doesn't work, you must write it on the command line;"
+	echo "        amake is prepared to detect all chips based on the CH340/341"
+	echo " "
+	echo "      Example: amake -u uno test.ino arduino /dev/ttyUSB0"
+	echo " "
+	echo " "
+	echo " You can get more info with the 'amake list'command"
+	echo " "
+	echo " You can contribute testing other boards and help the developer to get"
+	echo " them supported, please do contact me: pavelmc@gmail.com"
+	echo " "
+	echo " Project website: https://github.com/pavelmc/amake/"
+	echo " "
 }
 
 
 # List supported board types.
 list() {
-    echo "By now only the following boards has support, if you like to get your"
-    echo "board supported you can hack the code and send it to me for inclusion,"
-    echo "or contact me to help you to get support for it."
-    echo " "
-    echo "      uno = Arduino Uno w/ ATMega328p, 16Mhz"
-    echo "      pro = Pro/Pro Mini w/ ATMega168, 3V, 8Mhz"
-    echo "    pro5v = Pro/Pro Mini w/ ATMega168, 5V, 16Mhz"
-    echo "   pro328 = Pro/Pro Mini w/ ATMega328, 3V, 8Mhz"
-    echo " pro5v328 = Pro/Pro Mini w/ ATMega368, 5V, 16Mhz"
-    echo "     nano = Nano w/ ATMega168"
-    echo "  nano328 = Nano 328 w/ ATMega328"
-    echo "       ng = NG w/ ATMega168"
-    echo "      ng8 = NG w/ ATMega8"
-    echo " "
-    echo "Contact the author: pavelmc@gmail.com"
-    echo " "
+	echo "'amake' - Simple interface for the Arduino IDE CLI"
+	echo "==================================================="
+	echo "By now only the following boards has an alias support, if you like"
+	echo "to get your board supported you can hack the code to make it work,"
+	echo "and donn't forget to send your hack it to me to share it with everyone."
+	echo "Or you can request for an alias to get support for it, use the"
+	echo "email or the github Issues thab."
+	echo " "
+	echo " Most used alias, from the OEM:"
+	echo " ==============================="
+	echo "      uno = Arduino Uno w/ ATMega328p, 16Mhz"
+	echo "      pro = Pro/Pro Mini w/ ATMega168, 3V, 8Mhz"
+	echo "    pro5v = Pro/Pro Mini w/ ATMega168, 5V, 16Mhz"
+	echo "   pro328 = Pro/Pro Mini w/ ATMega328, 3V, 8Mhz"
+	echo " pro5v328 = Pro/Pro Mini w/ ATMega368, 5V, 16Mhz"
+	echo "     nano = Nano w/ ATMega168"
+	echo "  nano328 = Nano 328 w/ ATMega328"
+	echo "       ng = NG w/ ATMega168"
+	echo "      ng8 = NG w/ ATMega8"
+	echo " "
+	echo " User requested board aliases (platform)"
+	echo " ==================================================="
+	echo "       trinket_m0 = Adafruit Trinket M0 (samd)"
+	echo "            flora = Adafruit Flora (avr)"
+	echo "       arduino_m0 = Arduino M0 (samd)"
+	echo "      mc128_16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
+	echo " "
+	echo "You can know more about how the alias and real names work by reading"
+	echo "the README.md file for this project in the section named:"
+	echo "\"Board aliases and real names\""
+	echo " "
+	echo "Contact the author at pavelmc@gmail.com, visit the project page at"
+	echo "http://github.com/pavelmc/amake/"
+	echo " "
 }
 
-
-# Print supported programmers
-prog() {
-    echo "This script supports just two programmer types:"
-    echo " * 'arduino', the default via serial port in the boards without USB or"
-    echo "    via the USB on the board that has it; this programmer has a second"
-    echo "    parameter and it's the serial port to talk to."
-    echo " "
-    echo " * 'pickit2', an ICP one that is very common, take into account that"
-    echo "   you must configure the file in /hardware/arduino/avr/programmers.txt"
-    echo "   to get it supported, and when using pickit the port part is not needed."
-    echo " "
-    echo "Contact the author: pavelmc@gmail.com if you have comments"
-    echo " "
-}
 
 # try to detect a valid serial port
 serial_detect() {
-    for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
-        devname="$(udevadm info -q name -p ${sysdevpath%/dev})"
-        [[ "$devname" == "bus/"* ]] && continue
-        eval "$(udevadm info -q property --export -p ${sysdevpath%/dev})"
-        [[ -z "$ID_SERIAL" ]] && continue
-        TYPE=`echo $ID_SERIAL| grep "$SERID"`
-        [[ -z "$TYPE" ]] && continue
-        PORT="/dev/$devname"
-        echo "Autodetected serial port is: $PORT"
-        break
-    done
+	for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
+		devname="$(udevadm info -q name -p ${sysdevpath%/dev})"
+		[[ "$devname" == "bus/"* ]] && continue
+		eval "$(udevadm info -q property --export -p ${sysdevpath%/dev})"
+		[[ -z "$ID_SERIAL" ]] && continue
+		TYPE=`echo $ID_SERIAL| grep "$SERID"`
+		[[ -z "$TYPE" ]] && continue
+		PORT="/dev/$devname"
+		echo "Autodetected serial port is: $PORT"
+		break
+	done
 
-    # default if can't be autodetected
-    if [ -n "$PORT"] ; then
-        echo "Can't auto detect the arduino port, defaulting to /dev/ttyUSB0"
-        PORT="/dev/ttyUSB0"
-    fi
+	# default if can't be autodetected
+	if [ -z "$PORT" ] ; then
+		echo "Can't auto detect the arduino port, defaulting to /dev/ttyUSB0"
+		PORT="/dev/ttyUSB0"
+	fi
 }
+
+
+# validate if a board was passed and put that in the environment
+valid_board() {
+	# board type passed?
+	if [ -z "$1" ] ; then
+		# no board passed, show usage
+		usage
+		
+		# exit with error
+		exit 1
+	else
+		# select the FQBN if applicable
+		which_board "$1"
+		
+		# message
+		echo "> board to verify against is: $MCUSTR"
+	fi
+}
+
+
+# validate if a filename was passed and puth than in the environment
+valid_file() {
+	# ino file passed?
+	if [ -z "$1" ] ; then
+		# no board passed, show usage
+		usage
+		
+		# exit with error
+		exit 1
+	else
+		# select the filename
+		filename "$1"
+		
+		# message
+		echo "> file to verify is: $FILE"
+		
+		# Persisten temp build path
+		BPATH=/tmp/amake/"$N_$MCUSTR"_build
+		
+		# silently ignore errors, during creation
+		mkdir "$BPATH" &> /dev/null
+	fi
+}
+
 
 # do it
 case "$1" in
-    clean)
-        # clean the build environment
-        rm -rf "$BPATH"
-        rm -f .amake
-        ;;
-    use)
-        # print usage
-        usage
-        ;;
-    list)
-        # print supported boards
-        list
-        ;;
-    prog)
-        # print supported programmers
-        prog
-        ;;
-    *)
-        # nothing or real parameters
-        if [ -z "$1" ] ; then
-            # empty parameters show use
-            usage
-        else
-            # select the proper mcus
-            whichmcu $1
+	use)
+		# print usage
+		usage
+		;;
 
-            # normal operation, compile or upload
-            if [ -z "$3" ] ; then
-                # Just two parameter: to compile
-                compile
-            else
-                # more than two parameter: to upload it
+	list)
+		# print supported boards
+		list
+		;;
 
-                # but first test if the firmware is there.
-                if [ -e "$BPATH"/"$FILE".hex ] ; then
-                    # it's there upload it
-                    uploadit
-                else
-                    # no there, try to compile it
-                    compile && uploadit
-                fi
-            fi
-        fi
-        ;;
+	"-c")
+		# clean the build environment
+		echo "Cleaning the environment"
+
+		# cleaning local file
+		rm -f .amake
+
+		# cleaning temp build paths
+		rm -fr /tmp/amake &> /dev/null
+		;;
+
+	"-v")
+		# verify, aka: compile
+		# $2 <board>
+		# $3 <file>
+
+		# mesaage
+		echo "Verify the sketch"
+		echo "================="
+
+		# board type passed?
+		valid_board "$2"
+
+		# file passed?
+		valid_file "$3"
+
+		# now we can compile
+		compile
+		;;
+
+	"-u")
+		# upload it to the board
+		# $2 <arduino_board_alias>
+		# $3 <file>
+		# $4 [serialport]"
+
+		echo "Upload the sketch"
+		echo "================="
+
+		# board type passed?
+		valid_board "$2"
+		
+		# file passed?
+		valid_file "$3"
+
+		# if posrt is passed use it if not try to auto detect
+		if [ -z "$4" ] ;  then
+			# try to autodetect
+			serial_detect
+		else
+			# use what's the user passed
+			PORT="$4"
+			
+		fi
+
+		# now we upload it
+		upload
+		;;
+
+	*)
+		# nothing or real parameters
+		usage
+		;;
 esac
