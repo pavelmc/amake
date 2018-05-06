@@ -2,7 +2,7 @@
 
 #########################################################################
 # This script is a make like tool for arduino-builder under linux
-# (a kind of arduino make (hence the name amake)
+# a kind of arduino make hence the name amake
 #
 # Author: Pavel Milanes, pavelmc@gmail.com, CO7WT
 #
@@ -46,7 +46,7 @@ ADIR=`pwd`
 #~ UHW="$HOME/Arduino/hardware"
 #~ LHW="$HOME/.arduino15/packages"
 
-# serial most used watermark for chinese arduinos
+# serial watermark for most used chinese arduinos
 SERID="1a86_USB2.0-Ser"
 
 # Test to find the configured name of the main file in multi-file cases.
@@ -69,8 +69,8 @@ filename() {
 }
 
 
-# Translate the alias for a board to the FQBN from a pre-strablished list of classic ones or directly 
-# for newer boards
+# Translate the alias for a board to the FQBN from a pre-strablished list 
+# of classic ones or directly for newer boards
 which_board() {
 	case "$1" in
 		uno)
@@ -149,30 +149,6 @@ compile() {
 	if [ "$?" == "0" ] ; then
 		# all good, save the project filename on a temp config one
 		echo $N > "$ADIR/".amake
-	else
-		case "$?" in
-			1)
-				# verify or upload failed
-				echo "Oops! something is wrong."
-				echo "If the error is related to an invalid board name you want to do a read of the README.md file in the amake project directory, in the section \"Board aliases and real names\" to know how to fix that."
-				;;
-			2)
-				# sketch not found
-				echo "Oops! please check that your sketch file exist."
-				;;
-			3)
-				# invalid argument for command line
-				echo "Oops! that didn't work. (CLI fail)"
-				;;
-			4)
-				# pref does not exist
-				echo "Oops! that didn't work. (pref fail)"
-				;;
-			*)
-				# pref does not exist
-				echo "Oops! that didn't work. (Unknown error)"
-				;;
-		esac
 	fi
 }
 
@@ -191,30 +167,6 @@ upload() {
 	if [ "$?" == "0" ] ; then
 		# all good, save the project filename on a temp config one
 		echo $N > "$ADIR/".amake
-	else
-		case "$?" in
-			1)
-				# verify or upload failed
-				echo "Oops! something is wrong."
-				echo "If the error is related to an invalid board name you want to do a read of the README.md file in the amake project directory, in the section \"Board aliases and real names\" to know how to fix that."
-				;;
-			2)
-				# sketch not found
-				echo "Oops! please check that your sketch file exist."
-				;;
-			3)
-				# invalid argument for command line
-				echo "Oops! that didn't work. (CLI fail)"
-				;;
-			4)
-				# pref does not exist
-				echo "Oops! that didn't work. (pref fail)"
-				;;
-			*)
-				# pref does not exist
-				echo "Oops! that didn't work. (Unknown error)"
-				;;
-		esac
 	fi
 }
 
@@ -264,7 +216,8 @@ usage() {
 	echo " amake -u <arduino_board_alias> <file> [serialport]"
 	echo "      * 'arduino_board_alias' refers to the specific board see the "
 	echo "        'amake list' output"
-	echo "      * 'file' is the main project file that must have the .ino extension"
+	echo "      * 'file' is the main project file that must have the .ino"
+	echo "         extension"
 	echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
 	echo "        amake will try to determine the serial port if omitted,"
 	echo "        if doesn't work, you must write it on the command line;"
@@ -276,7 +229,7 @@ usage() {
 	echo " You can get more info with the 'amake list'command"
 	echo " "
 	echo " You can contribute testing other boards and help the developer to get"
-	echo " them supported, please do contact me: pavelmc@gmail.com"
+	echo " them supported, please do contact me at pavelmc@gmail.com"
 	echo " "
 	echo " Project website: https://github.com/pavelmc/amake/"
 	echo " "
@@ -289,7 +242,7 @@ list() {
 	echo "==================================================="
 	echo "By now only the following boards has an alias support, if you like"
 	echo "to get your board supported you can hack the code to make it work,"
-	echo "and donn't forget to send your hack it to me to share it with everyone."
+	echo "and don't forget to send your hack it to me to share it with everyone."
 	echo "Or you can request for an alias to get support for it, use the"
 	echo "email or the github Issues thab."
 	echo " "
@@ -369,7 +322,7 @@ valid_board() {
 valid_file() {
 	# ino file passed?
 	if [ -z "$1" ] ; then
-		# no board passed, show usage
+		# no file passed, show usage
 		usage
 		
 		# exit with error
@@ -384,7 +337,8 @@ valid_file() {
 		# Persisten temp build path
 		BPATH=/tmp/amake/"$N_$MCUSTR"_build
 		
-		# silently ignore errors, during creation
+		# silently ignore errors, during creation of the build path
+		mkdir "/tmp/amake/" &> /dev/null
 		mkdir "$BPATH" &> /dev/null
 	fi
 }
