@@ -30,7 +30,7 @@
 ################################################################################
 # It must point to where you extracted the arduino ide .xz file, please
 # keep it between " " to be safe.
-APATH="/home/pavel/Documentos/Software/Arduino/latest-ide"
+APATH="$HOME/arduino"    # link to arduino IDE directory
 
 ################################################################################
 # From this point and below you don't need to do any change, unless you are a
@@ -116,6 +116,7 @@ which_board() {
 		# user requested aliases
 		# ====================================================
 		trinket_m0)
+            SERID="Adafruit_Trinket_M0"
 			MCUSTR="adafruit:samd:adafruit_trinket_m0"
 			;;
 
