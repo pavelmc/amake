@@ -120,6 +120,11 @@ which_board() {
 			MCUSTR="adafruit:samd:adafruit_trinket_m0"
 			;;
 
+		leonardo)
+            SERID="Arduino_LLC_Arduino_Leonardo"                                                                                                  
+			MCUSTR="arduino:avr:leonardo"   
+			;;
+
 		arduino_m0)
 			MCUSTR="arduino:samd:mzero_bl"
 			;;
@@ -300,6 +305,7 @@ list() {
 	echo " User requested board aliases (platform)"
 	echo " ==================================================="
 	echo "       trinket_m0 = Adafruit Trinket M0 (samd)"
+    echo "   'leonardo' = Arduino Leonardo w/ ATmega32u4, 16Mhz"
 	echo "            flora = Adafruit Flora (avr)"
 	echo "       arduino_m0 = Arduino M0 (samd)"
 	echo "      mc128e16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
