@@ -185,6 +185,18 @@ I have not any modern board based on samd or stm32 patform, all this ones has a 
 
 ## Contributing ##
 
-Code hacks and pull request are always welcomed and appreciated, if you can't code and what to keep this project on going take a peek at the Donations_funding.md file for details.
+Code hacks, ideas, tips and pull requests are always welcomed and appreciated; also if you can't code there are a few things you can do to contribute:
+
+* Spot a grammar or syntax error on the docs/code and let me know; English is my second one and I'm not proficient yet.
+* You have a board not supported and some spare time (a few minutes)? drop me and email and I will schedule a time to be on-line with you to test some things or simply advice on you to make some test and pass me the results and I will do the rest: the board will be supported ASAP.
+* Arduino or arduino compatible boards are not easy to get items here also, you can donate some of your - not used boards - and I can put them to work here, also compatible devices and shields are welcomed.
+* Donate Internet or Cell air time to me, I live in the Cuba island and the Internet/Cell service is very expensive here; by this way you can help me stay connected.
+* Simply donate the cost of a beer/coffee if you like to do so, of course more than one is allowed ;-)
+
+**Remember:** No payment of whatsoever is required to use this code: this is [Free/Libre Software](https://en.wikipedia.org/wiki/Software_Libre), nevertheless donations are very welcomed.
+
+If you like to contribute in any way please contact the author at pavelmc@gmail.com dot com for instructions on how to do it.
+
+Thanks in advance and enjoy the ride.
 
 **73 de CO7WT, Pavel**
