@@ -47,10 +47,15 @@ ADIR=`pwd`
 #~ LHW="$HOME/.arduino15/packages"
 
 # serial watermark for most used chinese arduinos
-# default for stock arduinos
-# see which_board procedure the case of the Adafruit_Trinket_M0
-# you can add the default ID for your board.
+# default for stock arduinos, see note below about this
 SERID="1a86_USB2.0-Ser"
+
+# You can specify a default Serial ID for a specific board to force the detection
+#################################################################################
+# see which_board procedure in the case of the Adafruit_Trinket_M0, you can add
+# the default ID for your board there, if a board can have more than one ID (see
+# the case of the leonardo board in the same place) you may put two or more
+# separated by a space, no leading or trailing spaces must be in there
 
 # Test to find the configured name of the main file in multi-file cases.
 ################################################################################
@@ -130,7 +135,7 @@ which_board() {
 
         leonardo)
             # Overriding the serial ID for the automatic detection of this board
-            SERID="Arduino_LLC_Arduino_Leonardo"
+            SERID="Arduino_LLC_Arduino_Leonardo Arduino_Srl_Arduino_Leonardo"
             MCUSTR="arduino:avr:leonardo"
             ;;
 
@@ -334,7 +339,13 @@ serial_detect() {
         [[ "$devname" == "bus/"* ]] && continue
         eval "$(udevadm info -q property --export -p ${sysdevpath%/dev})"
         [[ -z "$ID_SERIAL" ]] && continue
-        TYPE=`echo $ID_SERIAL| grep "$SERID"`
+        # try to detect one of multiple serial IDs elements
+        for ID in "$SERID" ; do
+            TYPE=`echo $ID_SERIAL | grep "$ID"`
+            if [ "$TYPE" != "" ] ; then
+                break
+            fi
+        done
         [[ -z "$TYPE" ]] && continue
         PORT="/dev/$devname"
         echo "Autodetected serial port is: $PORT"
