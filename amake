@@ -121,6 +121,7 @@ which_board() {
         trinket_m0)
             # Overriding the serial ID for the automatic detection of this board
             SERID="Adafruit_Trinket_M0"
+
             MCUSTR="adafruit:samd:adafruit_trinket_m0"
             ;;
 
