@@ -187,4 +187,4 @@ I have not any modern board based on samd or stm32 patform, all this ones has a 
 
 Code hacks and pull request are always welcomed and appreciated, if you can't code and what to keep this project on going take a peek at the Donations_funding.md file for details.
 
-** 73 de CO7WT, Pavel **
+**73 de CO7WT, Pavel**
