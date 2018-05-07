@@ -31,7 +31,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 Version 1.0 (**Warning** from this version and forward I changed the command line parameters.)
 
-* May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to [TODO] for asking support for a non native arduino board, that request push me to give some love to this project again.
+* May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
 * Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.
 * Feb/2017: Ease the work with multiple .ino files. You need to make a "amake clean" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake clean" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
 * Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements
@@ -139,7 +139,7 @@ For example, you can see an output like this for a Arduino Star Otto (STM23F4) b
 /home/pavel/Documentos/Software/Arduino/arduino-1.8.5/arduino-builder -dump-prefs -logger=machine -hardware /home/pavel/Documentos/Software/Arduino/arduino-1.8.5/hardware -hardware /home/pavel/.arduino15/packages -hardware /home/pavel/Arduino/hardware -tools /home/pavel/Documentos/Software/Arduino/arduino-1.8.5/tools-builder -tools /home/pavel/Documentos/Software/Arduino/arduino-1.8.5/hardware/tools/avr -tools /home/pavel/.arduino15/packages -built-in-libraries /home/pavel/Documentos/Software/Arduino/arduino-1.8.5/libraries -libraries /home/pavel/Arduino/libraries -fqbn=arduino:stm32f4:star_otto -ide-version=10805 -build-path /tmp/arduino_build_549136 -warnings=none -build-cache /tmp/arduino_cache_19855 -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.arm-none-eabi-gcc.path=/home/pavel/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1 -prefs=runtime.tools.dfu-util.path=/home/pavel/.arduino15/packages/arduino/tools/dfu-util/0.9.0-arduino1 -prefs=runtime.tools.arduinoSTM32load.path=/home/pavel/.arduino15/packages/arduino/tools/arduinoSTM32load/2.0.0 -verbose /home/pavel/Arduino/Blink/Blink.ino
 ```
 
-If you look carefully you can detect the part "-fqbn=arduino:stm32f4:star_otto" so you can invoke amake just like this for verify/compile an sketch in this particular board:
+If you look carefully you can detect the string "-fqbn=arduino:stm32f4:star_otto" so you can invoke amake just like this for verify/compile an sketch in this particular board:
 
 ```
 cd %d ; amake -v arduino:stm32f4:star_otto %f
