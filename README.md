@@ -33,7 +33,7 @@ Version 1.0 (**Warning** from this version and forward I changed the command lin
 
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
 * Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.
-* Feb/2017: Ease the work with multiple .ino files. You need to make a "amake clean" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake clean" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
+* Feb/2017: Ease the work with multiple .ino files. You need to make a "amake -c" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake -c" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
 * Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements
 * Feb/2017: Auto detection of the serial port; for now just USB-Serial adapters based on the CH340/341 chips.
 
@@ -83,7 +83,13 @@ The "-v" switch tells the script that you want to verify (aka compile) your sket
 
 'uno' is the board alias name (you can get details running 'amake list')
 
-Once you successfully compiled it once, amake will ignore the %f parameter; this trick will be very useful when you try to compile a multi file project as you can compile against any file in the project, **always after compiling it first again the main file** ('amake clean' will reset this)
+Once you successfully compiled it once, amake will take the board and file (the 'uno' and '%f' parameter) as optionals (that info is stored in a local hidden file on your project folder named .amake)
+
+This trick will be very useful when you try to compile a multi file project as you can compile against any file in the project, **always after compiling it successfully against the main file** be aware that 'amake -c' will reset this. This feature is important for people that manages all the code in the command line, once you compile it once successfully you can simply do this:
+
+```
+amake -v
+```
 
 **Upload to a board**
 
@@ -97,7 +103,15 @@ The "-u" switch tells the script that you want to upload your hex code to the bo
 
 The '/dev/ttyUSB1' is the USB port in which the arduino is connected.
 
-The port part can be omitted if you use a Chinese arduino or a cheap USB-Serial adapter as amake will autodetect it. If amake can't detect the port and you don't pass it on the command line it will default to /dev/ttyUSB0
+The port part can be omitted if you use a Chinese arduino or a cheap USB-Serial adapter as amake will autodetect it. If amake can't detect the port and you don't pass it on the command line it will default to /dev/ttyUSB0, the same is true (usb port being optional) if you use a newer board with an auto detecting USB port routine on uploading, like some samd boards (Adafruit Trinket M0?)
+
+The "-u" switch also uses the trick of caching the board and file details described on the "-v" switch, add to this the auto detection of the usb port and you can do just this on the command line:
+
+```
+amake -u
+```
+
+Remember: always after being successfully compiled it once and be aware that 'amake -c' will reset this.
 
 **Clean the environment**
 
@@ -107,9 +121,13 @@ Some times you may need to clean you build environment, this common task if set 
 cd %d ; amake -c %f
 ```
 
-The "clean" parameter also unset the property of amake in which you can compile a project against any .ino file in the project folder; after a "clean" you must always compile the project against the main file to gain that feature again.
+The "-c" parameter also unset the feature of caching the board and file; after a "clean" you must always compile the project against the main file to gain that feature again.
 
-Other IDE tools may need to switch parameters but the ones showed here are very common ones and I know you can adapt it to your preferred IDE tool.
+Even so, if you had successfully compiled it on the past then you can dismiss the "%f" parameter (just once, as a '-c' switch will break that feature)
+
+## Other IDEs ##
+
+Other IDE tools (vi, atom, eclipse) may need to switch parameters but the ones showed here are very simple as an example and I know you can adapt it to your preferred IDE tool.
 
 ## How it works? ##
 
@@ -117,11 +135,13 @@ This script just invoke the command line interface for the Arduino IDE and do so
 
 Basically it can compile and upload ANY board you can compile and upload with the Arduino IDE graphical user interface, even the newlly installed via the Board Manager, or the ones you put in your local hardware directory: if the Arduino IDE see it and work with then you can use it from the command line.
 
-But, always is a but... I make some sacrifices in the process, this is a list of them:
+The compiler is set with a persistent build path to speed up the compilation upon smaller changes, be aware that in some cases you will need to make an "amake -c" to reset (ERASE) the temporal build path and compile the sketch from zero.
+
+I make some sacrifices in the process of make this easy from the command line, this is a list of them:
 
 ### Board Aliases and real names ###
 
-The Arduino IDE uses a schema for the user fliendly names and full qualified board names (fqbn), I have not deciphered it yet, so I introduces what is know as board aliases.
+The Arduino IDE uses a schema for the user friendly names and **full qualified board names** (fqbn), I have not built automatic support for it, yet, so I introduces what is know as board aliases.
 
 The Arduino IDE uses the fqbn of the board and that can be a tricky game, some examples:
 
@@ -131,7 +151,7 @@ The Arduino IDE uses the fqbn of the board and that can be a tricky game, some e
 
 You see the point? that's why I have embedded some aliases and I can update it along the way to make your life easier.
 
-Even so if there is no alias for a supported board you can use it, just activate the option in the Arduino IDE for showing debug output on compiling and take a peek on the debug output, look for a -fqbn parameter in the fisrt lines (scroll to the right)
+Even so if there is no alias for a supported board, you can compile a sketch against it, just activate the option in the Arduino IDE for showing debug output on compiling and take a peek on the debug output, look for a -fqbn parameter in the first lines (scroll to the right)
 
 For example, you can see an output like this for a Arduino Star Otto (STM23F4) board:
 
@@ -153,9 +173,11 @@ So, you have managed to verify (compile) your sketch and it's working, how I can
 
 Fire your Arduino IDE instance, configure the blink.ino example code for your particular board (no matter what board, if OEM or third party) and do an upload.
 
-Once you have managed to upload it with the default USB or a custom programmer (LPT port, USB to Serial TTL adapter or even a Pickit2) it will work on the command line for amake, just as it does in the Arduino IDE.
+Once you have managed to upload it successfully using the default USB or a custom programmer (LPT port, USB to Serial TTL adapter or even a Pickit2) it will work on the command line for amake, just as it does in the Arduino IDE.
 
-At least all the classic arduinos work wih this method, no matter if with native USB or a USB to TTL adapter, or using a Pickit2 as a ICP programmer.
+At least all the classic arduinos work with this method, no matter if with native USB or a USB to TTL adapter, or using a Pickit2 as a ICP programmer.
+
+That's because amake will use the cached programming method you used with the Arduino IDE.
 
 **Warning**
 
