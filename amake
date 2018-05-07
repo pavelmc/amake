@@ -116,7 +116,7 @@ which_board() {
             MCUSTR="arduino:avr:atmegang:cpu=atmega8"
             ;;
 
-        # user requested aliases
+        # user requested/contributed/tested aliases
         # ====================================================
         trinket_m0)
             # Overriding the serial ID for the automatic detection of this board
@@ -126,6 +126,12 @@ which_board() {
 
         arduino_m0)
             MCUSTR="arduino:samd:mzero_bl"
+            ;;
+
+        leonardo)
+            # Overriding the serial ID for the automatic detection of this board
+            SERID="Arduino_LLC_Arduino_Leonardo"
+            MCUSTR="arduino:avr:leonardo"
             ;;
 
         flora)
@@ -303,12 +309,13 @@ list() {
     echo " "
     echo " User requested board aliases (platform)"
     echo " ==================================================="
-    echo "       trinket_m0 = Adafruit Trinket M0 (samd)"
-    echo "        flora = Adafruit Flora (avr)"
-    echo "       arduino_m0 = Arduino M0 (samd)"
-    echo "      mc128e16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
-    echo "     mega2560 = Arduino Mega 2560 (Mega, cpu ATMega2560)"
-    echo "         mega = Arduino Mega (Mega, cpu ATMega1280)"
+    echo "    trinket_m0 = Adafruit Trinket M0 (samd)"
+    echo "      leonardo = Arduino Leonardo w/ ATmega32u4, 16Mhz"
+    echo "         flora = Adafruit Flora (avr)"
+    echo "    arduino_m0 = Arduino M0 (samd)"
+    echo "   mc128e16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
+    echo "      mega2560 = Arduino Mega 2560 (Mega, cpu ATMega2560)"
+    echo "          mega = Arduino Mega (Mega, cpu ATMega1280)"
     echo " "
     echo "You can know more about how the alias and real names work by reading"
     echo "the README.md file for this project in the section named:"
