@@ -67,7 +67,7 @@ amake
 If all goes well you will get the "usage" text, read it, then try this to know what boards are supported by aliases:
 
 ```
-amake list
+amake -b
 ```
 
 Now you need to configure your IDE build commands, in Geany you can take note of this three:
