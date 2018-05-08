@@ -47,7 +47,7 @@ If you don't have preferences  just put it right in your home folder. I like to 
 Once you downloaded and extracted the amake-master.zip from this project, you need to move the amake file to a folder named "bin" in you home folder (you must create it if not there already) once you have the file in place open it for edition with your simple text tool (gedit in Gnome, leafpad in LXDE, kedit in KDE, etc.) then locate a line like this:
 
 ```
-APATH="~/Documents/Software/Arduino/latest-ide"
+APATH="$HOME/arduino"
 ```
 
 Then put the path you take note in the previous steps (where you placed the arduino IDE folder) in this line between the "" with no leading or trailing spaces.
