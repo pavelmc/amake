@@ -37,6 +37,9 @@ APATH="$HOME/arduino"    # link to arduino IDE directory
 # developer and want to tweak or change something; hack are always welcomed
 # and please do share your mods with me.
 ################################################################################
+VERSION=1.0
+AUTHOR="Pavel Milanes, pavelmc@gmail.com, CO7WT"
+DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
 
 # preserve actual directory
 ADIR=`pwd`
@@ -218,8 +221,20 @@ upload() {
 }
 
 
-# Usage show function
 usage() {
+    echo "$(basename $0) - version $VERSION by $AUTHOR"
+    echo "$DESCRIPTION"
+    echo""
+    echo "Usage: $(basename $0) options [<board_alias>] [file] [serial_port]"·                                                
+    echo "       -b    output list of board aliases for supported boards"                                                                                                    
+    echo "       -c    clean the build environment"
+    echo "       -h    output detailed help information"                                                                                                                       
+    echo "       -v    verify (compile) the sketch (file)"
+    echo "       -u    upload .hex file to board"
+}
+
+# Usage show function
+detailed_help() {
     echo "'amake' - Simple interface for the Arduino IDE CLI"
     echo "==================================================="
     echo "Usage: this script has 3 main modes:"
@@ -240,11 +255,19 @@ usage() {
     echo " "
     echo "      Example: amake -c blink.ino"
     echo " "
+
+    echo "Continue'? (Y/n)"
+    read -n 1 response
+    if [ "$response" = "n" ] || [ "$response" = "N" ] ; then
+        return
+    fi
+
+    echo " "
     echo " Verify (Compile) a sketch:"
     echo " =========================="
     echo " amake -v [<arduino_board_alias] [file]"
     echo "      * 'arduino_board_alias' refers to the specific board, see "
-    echo "    'amake list' output for details."
+    echo "    'amake -b' output for details."
     echo "      * 'file' is the main project file that must have the "
     echo "    .ino extension, for example blink.ino"
     echo " "
@@ -260,12 +283,19 @@ usage() {
     echo "      Example: amake -v uno blink.ino"
     echo "      Example: amake -v (second time if first worked ok)"
     echo " "
+
+    echo "Continue'? (Y/n)"
+    read -n 1 response
+    if [ "$response" = "n" ] || [ "$response" = "N" ] ; then
+        return
+    fi
+
     echo " "
     echo " Uploading the firmware to a board:"
     echo " ===================================="
     echo " amake -u [arduino_board_alias] [file] [serialport]"
     echo "      * 'arduino_board_alias' refers to the specific board see the "
-    echo "    'amake list' output"
+    echo "    'amake -b' output"
     echo "      * 'file' is the main project file that must have the .ino"
     echo "     extension"
     echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
@@ -280,27 +310,42 @@ usage() {
     echo "      Example: amake -u uno test.ino arduino /dev/ttyUSB0"
     echo "      Example: amake -u (second time if first worked ok)"
     echo " "
-    echo " You can get more info with the 'amake list'command"
+    echo " You can get more info with the 'amake -b' command"
     echo " "
     echo " You can contribute testing other boards and help the developer to get"
     echo " them supported, please do contact me at pavelmc@gmail.com"
     echo " "
     echo " Project website: https://github.com/pavelmc/amake/"
     echo " "
-}
 
+    echo "Continue'? (Y/n)"
+    read -n 1 response
+    if [ "$response" = "n" ] || [ "$response" = "N" ] ; then
+        return
+    fi
 
-# List supported board types.
-list() {
-    echo "'amake' - Simple interface for the Arduino IDE CLI"
+    echo " "
+    echo "Supported board aliases:"
     echo "==================================================="
-    echo "By now only the following boards has an alias support, if you like"
+    echo "For now only the following boards have an alias support, if you would like"
     echo "to get your board supported you can hack the code to make it work,"
     echo "and don't forget to send your hack it to me to share it with everyone."
     echo "Or you can request for an alias to get support for it, use the"
     echo "email or the github Issues thab."
     echo " "
-    echo " Most used alias, from the OEM:"
+    boards
+    echo " "
+    echo "You can know more about how the alias and real names work by reading"
+    echo "the README.md file for this project in the section named:"
+    echo "\"Board aliases and real names\""
+    echo " "
+    echo "Contact the author at pavelmc@gmail.com, visit the project page at"
+    echo "http://github.com/pavelmc/amake/"
+    echo " "
+}
+
+boards() {
+    echo " Most used aliases, from the OEM:"
     echo " ==============================="
     echo "      uno = Arduino Uno w/ ATMega328p, 16Mhz"
     echo "      pro = Pro/Pro Mini w/ ATMega168, 3V, 8Mhz"
@@ -322,15 +367,7 @@ list() {
     echo "      mega2560 = Arduino Mega 2560 (Mega, cpu ATMega2560)"
     echo "          mega = Arduino Mega (Mega, cpu ATMega1280)"
     echo " "
-    echo "You can know more about how the alias and real names work by reading"
-    echo "the README.md file for this project in the section named:"
-    echo "\"Board aliases and real names\""
-    echo " "
-    echo "Contact the author at pavelmc@gmail.com, visit the project page at"
-    echo "http://github.com/pavelmc/amake/"
-    echo " "
 }
-
 
 # try to detect a valid serial port
 serial_detect() {
@@ -407,9 +444,9 @@ build_path() {
 
 # do it
 case "$1" in
-    list)
+    "-b")
         # print supported boards
-        list
+        boards
         ;;
 
     "-c")
@@ -421,6 +458,10 @@ case "$1" in
 
         # cleaning temp build paths
         rm -fr /tmp/amake &> /dev/null
+        ;;
+
+    "-h")
+        detailed_help
         ;;
 
     "-v")
