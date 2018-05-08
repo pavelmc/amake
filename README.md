@@ -18,7 +18,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 ## Features ##
 
-* This is Linux only tool, developed in Ubuntu 16.04 TLS, and must work with other linux with no problem.
+* This is Linux only tool, developed in Ubuntu 16.04 LTS, and must work with other linux with no problem.
 * Full arduino integration: same folder structure, same tools, same software.
 * You need only to know 3 things:
     * What is your board
@@ -31,6 +31,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 Version 1.0 (**Warning** from this version and forward I changed the command line parameters.)
 
+* May/2018: The script can now handle devices (boards) with multiple serial identifiers (like clone leonardo boards before being programmed with Arduino) Thanks to Don Haig for pointing the issue and testing the proposed fix.
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
 * Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.
 * Feb/2017: Ease the work with multiple .ino files. You need to make a "amake -c" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake -c" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
