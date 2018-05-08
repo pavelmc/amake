@@ -49,6 +49,8 @@ ADIR=`pwd`
 #~ UHW="$HOME/Arduino/hardware"
 #~ LHW="$HOME/.arduino15/packages"
 
+PORT="/dev/ttyUSB0" # Default port for uploading sketches
+
 # serial watermark for most used chinese arduinos
 # default for stock arduinos, see note below about this
 SERIDS=(1a86_USB2.0-Ser)
@@ -208,6 +210,7 @@ upload() {
     # change path
     cd "$APATH"
 
+    echo "**Uploading to = '$PORT'"
     # compile it
     "$APATH/arduino" --upload --board "$MCUSTR" --port "$PORT" \
         --pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
@@ -230,7 +233,7 @@ usage() {
     echo "       -c    clean the build environment"
     echo "       -h    output detailed help information"                                                                                                                       
     echo "       -v    verify (compile) the sketch (file)"
-    echo "       -u    upload .hex file to board"
+    echo "       -u    upload .hex file to board(s)"
 }
 
 # Usage show function
@@ -369,6 +372,7 @@ boards() {
     echo " "
 }
 
+PORTS=()
 # try to detect a valid serial port
 serial_detect() {
     for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
@@ -381,24 +385,41 @@ serial_detect() {
             TYPE=`echo $ID_SERIAL | grep "$ID"`
             DEVICE=`echo $devname | grep "tty"`
             if [ "$TYPE" != "" ] && [ "$DEVICE" != "" ]; then
-                break
+                PORTS+=(/dev/$devname)
             fi
             TYPE=""; DEVICE=""
         done
-
-        [[ -z "$TYPE" ]] && continue
-        PORT="/dev/$devname"
-        echo "Autodetected serial port is: $PORT"
-        break
     done
+    
+    # found only one port that matched 
+    if [ ${#PORTS[@]} -eq 1 ] ; then                                                                                                                
+        echo "Autodetected serial port is: '${PORTS[0]}'"
+        return
+    fi                         
 
-    # default if can't be autodetected
-    if [ -z "$PORT" ] ; then
-        echo "Can't auto detect the arduino port, defaulting to /dev/ttyUSB0"
-        PORT="/dev/ttyUSB0"
+    # found no ports that matched 
+    if [ ${#PORTS[@]} -eq 0 ] ; then                                                                                                                
+        echo "Can't autodetect. Defaulting to $DEFAULT_PORT"                                                                     
+        PORT[0]="$DEFAULT_PORT"                                                                                                                       
+        return
+    fi                         
+
+    # found several ports that matched 
+    if [ ${#PORTS[@]} -gt 1 ] ; then                                                                                                                
+        echo "Devices detected on multiple ports: ${PORTS[@]}"
+        echo -n "Do you want to upload hex file to all of these devices?(y/N):"
+        read -n 1 response
+        echo ""
+
+        if  [ -z $response  ] ; then response="N" ; fi # response length=0 if user hits spacebar or Enter key
+        if [ $response = "y" ] || [ $response = "Y" ] ; then
+            : # Do Nothing
+        else 
+            echo "Exiting program..."
+            exit 1
+        fi
     fi
 }
-
 
 # validate if a board was passed and put that in the environment
 valid_board() {
@@ -504,18 +525,21 @@ case "$1" in
         # touch or create the persistent build path
         build_path "$MCUSTR" "$FILE"
 
-        # if posrt is passed use it if not try to auto detect
+        # if port is passed use it if not try to auto detect
         if [ -z "$4" ] ;  then
             # try to autodetect
             serial_detect
         else
             # use what's the user passed
-            PORT="$4"
-
+            PORTS[0]="$4"                                                                                                                       
         fi
 
         # now we upload it
-        upload
+
+        for PORT in "${PORTS[@]}" ; do
+            echo "Uploading to = '$PORT'"
+            upload
+        done
         ;;
 
     *)
