@@ -104,7 +104,9 @@ The "-u" switch tells the script that you want to upload your hex code to the bo
 
 The '/dev/ttyUSB1' is the USB port in which the arduino is connected.
 
-The port part can be omitted if you use a Chinese arduino or a cheap USB-Serial adapter as amake will autodetect it. If amake can't detect the port and you don't pass it on the command line it will default to /dev/ttyUSB0, the same is true (usb port being optional) if you use a newer board with an auto detecting USB port routine on uploading, like some samd boards (Adafruit Trinket M0?)
+The serial port parameter can be omitted if you use a Chinese arduino or a cheap USB-Serial adapter, amake will autodetect it. If amake can't detect the port and you don't pass it on the command line it will default to /dev/ttyUSB0.
+
+The serial port auto detection also works on some newer boards with an auto detecting USB port routine on uploading, like some samd boards (Adafruit Trinket M0, Arduino Trinket M0, Leonardo and counting up)
 
 The "-u" switch also uses the trick of caching the board and file details described on the "-v" switch, add to this the auto detection of the usb port and you can do just this on the command line:
 
@@ -196,7 +198,7 @@ Code hacks, ideas, tips and pull requests are always welcomed and appreciated; a
 
 **Remember:** No payment of whatsoever is required to use this code: this is [Free/Libre Software](https://en.wikipedia.org/wiki/Software_Libre), nevertheless donations are very welcomed.
 
-If you like to contribute in any way please contact the author at pavelmc@gmail.com dot com for instructions on how to do it.
+If you like to contribute in any way please contact the author at pavelmc@gmail.com for instructions on how to do it.
 
 Thanks in advance and enjoy the ride.
 
