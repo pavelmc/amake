@@ -4,7 +4,12 @@
 # This script is a make like tool for arduino-builder under linux
 # a kind of arduino make hence the name amake
 #
-# Author: Pavel Milanes, pavelmc@gmail.com, CO7WT
+# Author: Pavel Milanes (Amateur Radio Operator CO7WT)
+#         pavelmc@gmail.com
+#         https://github.com/pavelmc
+#
+# Contributors:
+#   * Don Haig (https://github.com/dbhaig)
 #
 # Rev: 1.0 / May 2018: full use of the Arduino IDE CLI
 # Rev: 0.2 / Feb 2017
@@ -45,11 +50,6 @@ DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
 
 # preserve actual directory
 ADIR=`pwd`
-
-# default paths
-#~ DHW="$APATH/hardware"
-#~ UHW="$HOME/Arduino/hardware"
-#~ LHW="$HOME/.arduino15/packages"
 
 # serial watermark for most used chinese arduinos
 # default for stock arduinos, see note below about this
@@ -224,6 +224,7 @@ upload() {
 }
 
 
+# Show usage
 usage() {
     echo "$(basename $0) - version $VERSION by $AUTHOR"
     echo "$DESCRIPTION"
@@ -232,16 +233,19 @@ usage() {
     echo "       -a    output autodection results for board alias specified"                                                                                                    
     echo "       -b    output list of board aliases for supported boards"                                                                                                    
     echo "       -c    clean the build environment"
-    echo "       -h    output detailed help information"                                                                                                                       
+    echo "       -h    output detailed help information"
     echo "       -v    verify (compile) the sketch (file)"
     echo "       -u    upload .hex file to board(s)"
 }
 
-# Usage show function
+
+# Show detailed help
 detailed_help() {
-    echo "'amake' - Simple interface for the Arduino IDE CLI"
-    echo "==================================================="
-    echo "Usage: this script has 3 main modes:"
+    echo "$(basename $0) - version $VERSION by $AUTHOR"
+    echo "$DESCRIPTION"
+    echo "==============================================================="
+    echo " "
+    echo "Usage: this script has 3 main use modes:"
     echo "  * Cleaning the environment"
     echo "  * Verify the sketch (aka compile it)"
     echo "  * Uploading it to the board"
@@ -249,15 +253,15 @@ detailed_help() {
     echo " Cleaning the build environment:"
     echo " ==============================="
     echo " amake -c [file]"
-    echo "      * 'file' is the main project file that must have the "
+    echo "    'file' is the main project file that must have the "
     echo "    .ino extension, for example blink.ino"
     echo "    If you have successfully compiled the project before"
     echo "    with amake the 'file' parameter is optional"
     echo " "
-    echo "      This force a cleaning up of all build environments for"
+    echo "    This force a cleaning up of all build environments for"
     echo "    all the platforms, boards and sketchs in this PC"
     echo " "
-    echo "      Example: amake -c blink.ino"
+    echo "    Example: amake -c blink.ino"
     echo " "
 
     echo "Continue'? (Y/n)"
@@ -269,23 +273,24 @@ detailed_help() {
     echo " "
     echo " Verify (Compile) a sketch:"
     echo " =========================="
-    echo " amake -v [<arduino_board_alias] [file]"
-    echo "      * 'arduino_board_alias' refers to the specific board, see "
+    echo " amake -v [arduino_board_alias] [file]"
+    echo "    'arduino_board_alias' refers to the specific board, see "
     echo "    'amake -b' output for details."
-    echo "      * 'file' is the main project file that must have the "
+    echo " "
+    echo "    'file' is the main project file that must have the "
     echo "    .ino extension, for example blink.ino"
     echo " "
-    echo "      This two parameters are mandatory just for the fisrt successfully"
+    echo "    This two parameters are mandatory just for the first successfully"
     echo "    verify or upload, from that point forward they are used from"
     echo "    cache if not passed"
     echo " "
-    echo "      In a multi .ino file scenario you must make first a 'clean'"
+    echo "    In a multi .ino file scenario you must make first a 'clean'"
     echo "    procedure and then compile against the main file, after"
     echo "    that you can compile the entire project against any file"
     echo "    (or none) unless you rename the main file."
     echo " "
-    echo "      Example: amake -v uno blink.ino"
-    echo "      Example: amake -v (second time if first worked ok)"
+    echo "    Example: amake -v uno blink.ino"
+    echo "    Example: amake -v (second time if first run result in no error)"
     echo " "
 
     echo "Continue'? (Y/n)"
@@ -296,23 +301,26 @@ detailed_help() {
 
     echo " "
     echo " Uploading the firmware to a board:"
-    echo " ===================================="
+    echo " =================================="
     echo " amake -u [arduino_board_alias] [file] [serialport]"
-    echo "      * 'arduino_board_alias' refers to the specific board see the "
+    echo "    'arduino_board_alias' refers to the specific board see the "
     echo "    'amake -b' output"
-    echo "      * 'file' is the main project file that must have the .ino"
-    echo "     extension"
-    echo "      * 'serialport' is the serial port usually /dev/ttyUSB0"
+    echo " "
+    echo "    'file' is the main project file that must have the .ino extension"
+    echo " "
+    echo "    'serialport' is the serial port usually /dev/ttyUSB0"
+    echo " "
     echo "    amake will try to determine the serial port if omitted,"
     echo "    if doesn't work, you must write it on the command line;"
     echo "    amake is prepared to detect all chips based on the CH340/341"
+    echo "    and some others."
     echo " "
-    echo "      The two first parameters are mandatory just for the fisrt"
-    echo "       successfully verify or upload, from that point forward they are"
+    echo "    The two first parameters are mandatory just for the first"
+    echo "    successfully verify or upload, from that point forward they are"
     echo "    used from cache if not passed"
     echo " "
-    echo "      Example: amake -u uno test.ino arduino /dev/ttyUSB0"
-    echo "      Example: amake -u (second time if first worked ok)"
+    echo "    Example: amake -u uno test.ino arduino /dev/ttyUSB0"
+    echo "    Example: amake -u (second time if first run result in no error)"
     echo " "
     echo " You can get more info with the 'amake -b' command"
     echo " "
@@ -330,15 +338,15 @@ detailed_help() {
 
     echo " "
     echo "Supported board aliases:"
-    echo "==================================================="
+    echo "========================"
     echo "For now only the following boards have an alias support, if you would like"
     echo "to get your board supported you can hack the code to make it work,"
     echo "and don't forget to send your hack it to me to share it with everyone."
-    echo "Or you can request for an alias to get support for it, use the"
-    echo "email or the github Issues thab."
+    echo " "
+    echo "Or you can request support for a board, use the email or the"
+    echo "Github project Issues tab for that."
     echo " "
     boards
-    echo " "
     echo "You can know more about how the alias and real names work by reading"
     echo "the README.md file for this project in the section named:"
     echo "\"Board aliases and real names\""
@@ -348,9 +356,18 @@ detailed_help() {
     echo " "
 }
 
+
+# Show supported board by aliases
 boards() {
+    if [ -n "$1" ] ; then
+        # show header just when instructed to
+        echo "$(basename $0) - version $VERSION by $AUTHOR"
+        echo "$DESCRIPTION"
+        echo "==============================================================="
+        echo " "
+    fi
     echo " Most used aliases, from the OEM:"
-    echo " ==============================="
+    echo " ================================"
     echo "      uno = Arduino Uno w/ ATMega328p, 16Mhz"
     echo "      pro = Pro/Pro Mini w/ ATMega168, 3V, 8Mhz"
     echo "    pro5v = Pro/Pro Mini w/ ATMega168, 5V, 16Mhz"
@@ -362,7 +379,7 @@ boards() {
     echo "      ng8 = NG w/ ATMega8"
     echo " "
     echo " User requested board aliases (platform)"
-    echo " ==================================================="
+    echo " ======================================="
     echo "    trinket_m0 = Adafruit Trinket M0 (samd)"
     echo "      leonardo = Arduino Leonardo w/ ATmega32u4, 16Mhz"
     echo "         flora = Adafruit Flora (avr)"
@@ -435,7 +452,7 @@ valid_board() {
 }
 
 
-# validate if a filename was passed and puth than in the environment
+# Validate if a filename was passed and put than in the environment
 valid_file() {
     # get the filename, either form cache or from the parameter
     filename "$1"
@@ -453,7 +470,7 @@ valid_file() {
 }
 
 
-# manage the build path
+# Manage the build path
 build_path() {
     # $1 is the MCUSTR
     # $2 is the filename
@@ -467,7 +484,7 @@ build_path() {
 }
 
 
-# do it
+# Do it
 case "$1" in
     "-a")
 
@@ -478,7 +495,7 @@ case "$1" in
         ;;
     "-b")
         # print supported boards
-        boards
+        boards show
         ;;
 
     "-c")
@@ -498,8 +515,8 @@ case "$1" in
 
     "-v")
         # verify, aka: compile
-        # $2 <board> optional?
-        # $3 <file> options?
+        # $2 [board]
+        # $3 [file]
 
         # mesaage
         echo "Verify the sketch"
@@ -520,8 +537,8 @@ case "$1" in
 
     "-u")
         # upload it to the board
-        # $2 <arduino_board_alias>
-        # $3 <file>
+        # $2 [board]
+        # $3 [file]
         # $4 [serialport]"
 
         echo "Upload the sketch"
