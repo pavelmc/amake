@@ -32,6 +32,8 @@
 # keep it between " " to be safe.
 APATH="$HOME/arduino"    # link to arduino IDE directory
 
+DEFAULT_PORT="/dev/ttyUSB0" # Default port for uploading sketches
+
 ################################################################################
 # From this point and below you don't need to do any change, unless you are a
 # developer and want to tweak or change something; hack are always welcomed
@@ -48,8 +50,6 @@ ADIR=`pwd`
 #~ DHW="$APATH/hardware"
 #~ UHW="$HOME/Arduino/hardware"
 #~ LHW="$HOME/.arduino15/packages"
-
-PORT="/dev/ttyUSB0" # Default port for uploading sketches
 
 # serial watermark for most used chinese arduinos
 # default for stock arduinos, see note below about this
@@ -229,6 +229,7 @@ usage() {
     echo "$DESCRIPTION"
     echo""
     echo "Usage: $(basename $0) options [<board_alias>] [file] [serial_port]"·                                                
+    echo "       -a    output autodection results for board alias specified"                                                                                                    
     echo "       -b    output list of board aliases for supported boards"                                                                                                    
     echo "       -c    clean the build environment"
     echo "       -h    output detailed help information"                                                                                                                       
@@ -407,6 +408,9 @@ serial_detect() {
     # found several ports that matched 
     if [ ${#PORTS[@]} -gt 1 ] ; then                                                                                                                
         echo "Devices detected on multiple ports: ${PORTS[@]}"
+        if [ "$DETECT_ONLY" == "True" ]; then
+            return
+        fi
         echo -n "Do you want to upload hex file to all of these devices?(y/N):"
         read -n 1 response
         echo ""
@@ -465,6 +469,13 @@ build_path() {
 
 # do it
 case "$1" in
+    "-a")
+
+        # board type passed?
+        valid_board "$2"
+        DETECT_ONLY="True"
+        serial_detect
+        ;;
     "-b")
         # print supported boards
         boards
