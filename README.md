@@ -31,6 +31,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 Version 1.0 (**Warning** from this version and forward I changed the command line parameters.)
 
+* May/2018: Adding a option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Don Haig)
 * May/2018: The script can now handle devices (boards) with multiple serial identifiers (like clone leonardo boards before being programmed with Arduino) Thanks to Don Haig for pointing the issue and testing the proposed fix.
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
 * Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.
