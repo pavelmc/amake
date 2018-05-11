@@ -37,6 +37,8 @@
 # keep it between " " to be safe.
 APATH="$HOME/arduino"    # link to arduino IDE directory
 
+DEFAULT_PORT="/dev/ttyUSB0" # Default port for uploading sketches
+
 ################################################################################
 # From this point and below you don't need to do any change, unless you are a
 # developer and want to tweak or change something; hack are always welcomed
@@ -208,6 +210,7 @@ upload() {
     # change path
     cd "$APATH"
 
+    echo "**Uploading to = '$PORT'"
     # compile it
     "$APATH/arduino" --upload --board "$MCUSTR" --port "$PORT" \
         --pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
@@ -225,15 +228,14 @@ upload() {
 usage() {
     echo "$(basename $0) - version $VERSION by $AUTHOR"
     echo "$DESCRIPTION"
-    echo "==============================================================="
-    echo " "
-    echo "Usage: $(basename $0) option [board_alias] [file] [serial_port]"
-    echo "    'option' is one of this:"
-    echo "       -b    output list of board aliases for supported boards"
+    echo""
+    echo "Usage: $(basename $0) options [<board_alias>] [file] [serial_port]"·                                                
+    echo "       -a    output autodection results for board alias specified"                                                                                                    
+    echo "       -b    output list of board aliases for supported boards"                                                                                                    
     echo "       -c    clean the build environment"
     echo "       -h    output detailed help information"
     echo "       -v    verify (compile) the sketch (file)"
-    echo "       -u    upload .hex file to board"
+    echo "       -u    upload .hex file to board(s)"
 }
 
 
@@ -388,8 +390,8 @@ boards() {
     echo " "
 }
 
-
-# Try to detect a valid serial port
+PORTS=()
+# try to detect a valid serial port
 serial_detect() {
     for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
         devname="$(udevadm info -q name -p ${sysdevpath%/dev})"
@@ -401,26 +403,46 @@ serial_detect() {
             TYPE=`echo $ID_SERIAL | grep "$ID"`
             DEVICE=`echo $devname | grep "tty"`
             if [ "$TYPE" != "" ] && [ "$DEVICE" != "" ]; then
-                break
+                PORTS+=(/dev/$devname)
             fi
             TYPE=""; DEVICE=""
         done
-
-        [[ -z "$TYPE" ]] && continue
-        PORT="/dev/$devname"
-        echo "Autodetected serial port is: $PORT"
-        break
     done
+    
+    # found only one port that matched 
+    if [ ${#PORTS[@]} -eq 1 ] ; then                                                                                                                
+        echo "Autodetected serial port is: '${PORTS[0]}'"
+        return
+    fi                         
 
-    # default if can't be autodetected
-    if [ -z "$PORT" ] ; then
-        echo "Can't auto detect the arduino port, defaulting to /dev/ttyUSB0"
-        PORT="/dev/ttyUSB0"
+    # found no ports that matched 
+    if [ ${#PORTS[@]} -eq 0 ] ; then                                                                                                                
+        echo "Can't autodetect. Defaulting to $DEFAULT_PORT"                                                                     
+        PORT[0]="$DEFAULT_PORT"                                                                                                                       
+        return
+    fi                         
+
+    # found several ports that matched 
+    if [ ${#PORTS[@]} -gt 1 ] ; then                                                                                                                
+        echo "Devices detected on multiple ports: ${PORTS[@]}"
+        if [ "$DETECT_ONLY" == "True" ]; then
+            return
+        fi
+        echo -n "Do you want to upload hex file to all of these devices?(y/N):"
+        read -n 1 response
+        echo ""
+
+        if  [ -z $response  ] ; then response="N" ; fi # response length=0 if user hits spacebar or Enter key
+        if [ $response = "y" ] || [ $response = "Y" ] ; then
+            : # Do Nothing
+        else 
+            echo "Exiting program..."
+            exit 1
+        fi
     fi
 }
 
-
-# Validate if a board was passed and put that in the environment
+# validate if a board was passed and put that in the environment
 valid_board() {
     # select the MCUSTR from the passed alias or the cache
     which_board "$1"
@@ -464,6 +486,13 @@ build_path() {
 
 # Do it
 case "$1" in
+    "-a")
+
+        # board type passed?
+        valid_board "$2"
+        DETECT_ONLY="True"
+        serial_detect
+        ;;
     "-b")
         # print supported boards
         boards show
@@ -524,17 +553,21 @@ case "$1" in
         # touch or create the persistent build path
         build_path "$MCUSTR" "$FILE"
 
-        # if port is passed use it, if not try to auto detect
+        # if port is passed use it if not try to auto detect
         if [ -z "$4" ] ;  then
             # try to autodetect
             serial_detect
         else
-            # use the user passed port
-            PORT="$4"
+            # use what's the user passed
+            PORTS[0]="$4"                                                                                                                       
         fi
 
         # now we upload it
-        upload
+
+        for PORT in "${PORTS[@]}" ; do
+            echo "Uploading to = '$PORT'"
+            upload
+        done
         ;;
 
     *)
