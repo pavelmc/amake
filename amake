@@ -62,6 +62,9 @@ SERIDS=(1a86_USB2.0-Ser)
 # the case of the leonardo board in the same place) you may put two or more
 # separated by a space, no leading or trailing spaces must be in there
 
+# array that will hold the auto-detected serial devices available
+PORTS=()
+
 # Test to find the configured name of the main file in multi-file cases.
 ################################################################################
 # If we use several files (.ino files) we need to know which is the main file
@@ -210,7 +213,9 @@ upload() {
     # change path
     cd "$APATH"
 
-    echo "**Uploading to = '$PORT'"
+    # alerting the user of the port to use
+    echo "> Uploading to = '$PORT'"
+
     # compile it
     "$APATH/arduino" --upload --board "$MCUSTR" --port "$PORT" \
         --pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
@@ -228,10 +233,12 @@ upload() {
 usage() {
     echo "$(basename $0) - version $VERSION by $AUTHOR"
     echo "$DESCRIPTION"
+    echo "==============================================================="
     echo""
-    echo "Usage: $(basename $0) options [<board_alias>] [file] [serial_port]"·                                                
-    echo "       -a    output autodection results for board alias specified"                                                                                                    
-    echo "       -b    output list of board aliases for supported boards"                                                                                                    
+    echo "Usage: $(basename $0) options [board_alias] [file] [serial_port]"
+    echo "    option is one of this:"
+    echo "       -a    output autodection results for board alias specified"
+    echo "       -b    output list of board aliases for supported boards"
     echo "       -c    clean the build environment"
     echo "       -h    output detailed help information"
     echo "       -v    verify (compile) the sketch (file)"
@@ -390,7 +397,7 @@ boards() {
     echo " "
 }
 
-PORTS=()
+
 # try to detect a valid serial port
 serial_detect() {
     for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
@@ -408,22 +415,22 @@ serial_detect() {
             TYPE=""; DEVICE=""
         done
     done
-    
-    # found only one port that matched 
-    if [ ${#PORTS[@]} -eq 1 ] ; then                                                                                                                
+
+    # found only one port that matched
+    if [ ${#PORTS[@]} -eq 1 ] ; then
         echo "Autodetected serial port is: '${PORTS[0]}'"
         return
-    fi                         
+    fi
 
-    # found no ports that matched 
-    if [ ${#PORTS[@]} -eq 0 ] ; then                                                                                                                
-        echo "Can't autodetect. Defaulting to $DEFAULT_PORT"                                                                     
-        PORT[0]="$DEFAULT_PORT"                                                                                                                       
+    # found no ports that matched
+    if [ ${#PORTS[@]} -eq 0 ] ; then
+        echo "Can't autodetect. Defaulting to $DEFAULT_PORT"
+        PORT[0]="$DEFAULT_PORT"
         return
-    fi                         
+    fi
 
-    # found several ports that matched 
-    if [ ${#PORTS[@]} -gt 1 ] ; then                                                                                                                
+    # found several ports that matched
+    if [ ${#PORTS[@]} -gt 1 ] ; then
         echo "Devices detected on multiple ports: ${PORTS[@]}"
         if [ "$DETECT_ONLY" == "True" ]; then
             return
@@ -432,15 +439,17 @@ serial_detect() {
         read -n 1 response
         echo ""
 
-        if  [ -z $response  ] ; then response="N" ; fi # response length=0 if user hits spacebar or Enter key
+        # response length=0 if user hits spacebar or Enter key
+        if  [ -z $response  ] ; then response="N" ; fi
         if [ $response = "y" ] || [ $response = "Y" ] ; then
             : # Do Nothing
-        else 
+        else
             echo "Exiting program..."
             exit 1
         fi
     fi
 }
+
 
 # validate if a board was passed and put that in the environment
 valid_board() {
@@ -448,7 +457,7 @@ valid_board() {
     which_board "$1"
 
     # message
-    echo "> board to verify against is: $MCUSTR"
+    echo "> Board to verify against is: $MCUSTR"
 }
 
 
@@ -465,7 +474,7 @@ valid_file() {
         exit 1
     else
         # message
-        echo "> file to verify is: $FILE"
+        echo "> File to verify is: $FILE"
     fi
 }
 
@@ -493,6 +502,7 @@ case "$1" in
         DETECT_ONLY="True"
         serial_detect
         ;;
+
     "-b")
         # print supported boards
         boards show
@@ -559,7 +569,7 @@ case "$1" in
             serial_detect
         else
             # use what's the user passed
-            PORTS[0]="$4"                                                                                                                       
+            PORTS[0]="$4"
         fi
 
         # now we upload it
