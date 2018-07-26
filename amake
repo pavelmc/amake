@@ -35,7 +35,11 @@
 ################################################################################
 # It must point to where you extracted the arduino ide .xz file, please
 # keep it between " " to be safe.
-APATH="$HOME/arduino"    # link to arduino IDE directory
+
+if [ -z "${APATH:-}" ]; then
+  aexec = `which arduino`
+  APATH = `dirname $aexec`
+fi
 
 DEFAULT_PORT="/dev/ttyUSB0" # Default port for uploading sketches
 
@@ -344,6 +348,12 @@ detailed_help() {
     fi
 
     echo " "
+    echo " Monitor output from arduino board:"
+    echo " =================================="
+    echo " amake -f [serialport]"
+    echo "    'serialport' is the serial port usually /dev/ttyUSB0 or /dev/ttyACM0"
+    echo "    115200 baud are used for communication"
+    echo " "
     echo "Supported board aliases:"
     echo "========================"
     echo "For now only the following boards have an alias support, if you would like"
@@ -528,7 +538,7 @@ case "$1" in
         # $2 [board]
         # $3 [file]
 
-        # mesaage
+        # message
         echo "Verify the sketch"
         echo "================="
 
@@ -578,6 +588,13 @@ case "$1" in
             echo "Uploading to = '$PORT'"
             upload
         done
+        ;;
+
+    "-f")
+        echo "Monitor the output from the arduino board"
+        echo "================="
+        stty -F "$2" 115200 raw -clocal -echo
+        cat "$2"
         ;;
 
     *)
