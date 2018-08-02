@@ -29,8 +29,9 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 ## Changelog ##
 
-Version 1.0 (**Warning** from this version and forward I changed the command line parameters.)
+Version 1.1
 
+* August/2018: Adding auto detection of the Arduino IDE instalation; you need to have it installed from the repo or downloaded from www.arduino.cc and installed in a folder under your HOME folder, you must have **just one version** of the Arduino IDE unzipped in you HOME. See the "Configuration" section below
 * May/2018: Adding a option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Don Haig)
 * May/2018: The script can now handle devices (boards) with multiple serial identifiers (like clone leonardo boards before being programmed with Arduino) Thanks to Don Haig for pointing the issue and testing the proposed fix.
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
@@ -41,22 +42,16 @@ Version 1.0 (**Warning** from this version and forward I changed the command lin
 
 ## Configuration ##
 
-You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like, but take note of the place (full path).
+You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like in your home folder, then run the install.sh script to set it up; if you get into troubles Google is your friend : "How to install the Arduino IDE in linux"
 
-If you don't have preferences  just put it right in your home folder. I like to have it elsewhere and make a link to that folder named in "~/Documents/Software/Arduino/latest-ide", but please note (write it down) the full path.
+**WARNING:** From August/2018 the software makes an auto-detection of the Arduino IDE installed, this auto-detection can fail if you have more than one instance (version) of the Arduino IDE; please remove the install directory for older versions to get rid of this issues.
 
-Once you downloaded and extracted the amake-master.zip from this project, you need to move the amake file to a folder named "bin" in you home folder (you must create it if not there already) once you have the file in place open it for edition with your simple text tool (gedit in Gnome, leafpad in LXDE, kedit in KDE, etc.) then locate a line like this:
-
-```
-APATH="$HOME/arduino"
-```
-
-Then put the path you take note in the previous steps (where you placed the arduino IDE folder) in this line between the "" with no leading or trailing spaces.
+Then downloade and extract the amake-master.zip from this project **BIG GREEN BUTTON**, you need to move the amake file to a folder named "bin" in you home folder (you must create it if not there already)
 
 Next step is to make the amake file executable, you can use your graphic interface tool (right click > properties > make executable) or using the basic command line, like this:
 
 ```
-chmod +x ~/bin/amake
+chmod +x $HOME/bin/amake
 ```
 
 Now is time to run & test it, run this in any bash console:

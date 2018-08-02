@@ -31,25 +31,96 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################
 
-# Arduino ide folder paths.
-################################################################################
-# It must point to where you extracted the arduino ide .xz file, please
-# keep it between " " to be safe.
-APATH="$HOME/arduino"    # link to arduino IDE directory
-
-DEFAULT_PORT="/dev/ttyUSB0" # Default port for uploading sketches
-
-################################################################################
-# From this point and below you don't need to do any change, unless you are a
-# developer and want to tweak or change something; hack are always welcomed
-# and please do share your mods with me.
-################################################################################
 VERSION=1.0
 AUTHOR="Pavel Milanes, pavelmc@gmail.com, CO7WT"
 DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
 
 # preserve actual directory
 ADIR=`pwd`
+
+# Detection and creation of a user local configuration
+################################################################################
+
+# function to run some checks on the APATH var to see if it valid
+valid_arduino_ide() {
+    # passed as Argument #1
+
+    # we check if ther is a particular file
+    if [ -f "$1/hardware/package_index_bundled.json" ] ; then
+        # it look like it, get some output from the executable
+        TMP=`mktemp`
+        "$1/arduino" --help &> $TMP
+
+        TEST=`cat "$TMP" | grep JAVA_TOOL_OPTIONS`
+        rm $TMP
+        if [ "$TEST" == "" ] ; then
+            # not
+            echo ""
+        else
+            # yes, finish
+            echo "Valid"
+        fi
+    fi
+}
+
+# Create or update a user configuation
+user_conf() {
+    # two arguments
+    # 1 - APATH
+    # 2 - Default serial
+
+    WD=`pwd`
+    cd ~
+    UC="$HOME/.amake"
+
+    echo "# User configuration file for amake, mostly auto detected settings." > $UC
+    echo "###################################################################" >> $UC
+    echo "# Arduino Path, the folder in which the Arduino IDE is" >> $UC
+    echo "APATH=\"$1\"" >> $UC
+    echo "" >> $UC
+    echo "# Deafult Serial port" >> $UC
+    echo "DEFAULT_PORT=\"$2\"" >> $UC
+
+    cd $WD
+}
+
+# Function to detect and output the first appearance of a local arduino IDE
+# folder, installed from the repository or manually, if manually it must be
+# below the user home folder ($HOME), manually has precedence over repo.
+get_arduino_ide() {
+    AIDE=`find ~/ -type f -executable -name *arduino 2> /dev/null | \
+        rev | cut -d "/" -f 2- | rev | head -n1`
+
+    # found it
+    if [ "$AIDE" == "" ] ; then
+        # not, it the repository version installed? or in the path?
+        AIDE=`which arduino`
+
+        # test if ther is a repo or path version
+        if [ "$AIDE" == "" ] ; then
+            # no..
+            echo "/dev/null"
+        else
+            # yesss, extract the folder
+            FAIDE=`echo "$AIDE" | rev | cut -d "/" -f 2- | rev`
+            echo "$FAIDE"
+            SERIAL="/dev/ttyUSB0"
+            user_conf "$FAIDE" "$SERIAL"
+        fi
+    else
+        # confirm it
+        VALID=`valid_arduino_ide "$AIDE"`
+        if [ "$VALID" == "Valid" ] ; then
+            # yesss
+            echo "$AIDE"
+            SERIAL="/dev/ttyUSB0"
+            user_conf "$AIDE" "$SERIAL"
+        else
+            echo "/dev/null"
+        fi
+    fi
+}
+
 
 # serial watermark for most used chinese arduinos
 # default for stock arduinos, see note below about this
@@ -190,6 +261,17 @@ which_board() {
 }
 
 
+# header to show every time
+main_header() {
+    echo "$(basename $0) - version $VERSION by $AUTHOR"
+    echo "$DESCRIPTION"
+    echo "Using the Arduno IDE here:"
+    echo "$APATH"
+    echo "==============================================================="
+    echo ""
+}
+
+
 # Compiler function
 compile() {
     # change path
@@ -231,10 +313,7 @@ upload() {
 
 # Show usage
 usage() {
-    echo "$(basename $0) - version $VERSION by $AUTHOR"
-    echo "$DESCRIPTION"
-    echo "==============================================================="
-    echo""
+    main_header
     echo "Usage: $(basename $0) options [board_alias] [file] [serial_port]"
     echo "    option is one of this:"
     echo "       -a    output autodection results for board alias specified"
@@ -367,11 +446,7 @@ detailed_help() {
 # Show supported board by aliases
 boards() {
     if [ -n "$1" ] ; then
-        # show header just when instructed to
-        echo "$(basename $0) - version $VERSION by $AUTHOR"
-        echo "$DESCRIPTION"
-        echo "==============================================================="
-        echo " "
+        main_header
     fi
     echo " Most used aliases, from the OEM:"
     echo " ================================"
@@ -493,9 +568,37 @@ build_path() {
 }
 
 
+# Some defaults and auto detection
+################################################################################
+# loading data from the user's home
+USERCONF="$HOME/.amake"
+if [ -r "$USERCONF" ] ; then
+    . "$USERCONF"
+
+    # APATH is valid?
+    VALID=`valid_arduino_ide "$APATH"`
+
+    if [ "$VALID" == "" ] ; then
+        echo "Invalid Arduino IDE configuration, auto detect it."
+        APATH=`get_arduino_ide`
+    fi
+else
+    APATH=`get_arduino_ide`
+
+    # APATH is valid?
+    VALID=`valid_arduino_ide "$APATH"`
+    if [ "$VALID" == "" ] ; then
+        echo "No valid Arduino IDE in your Home, plase install one."
+        exit 1
+    fi
+fi
+
 # Do it
+################################################################################
 case "$1" in
     "-a")
+        # Header
+        main_header
 
         # board type passed?
         valid_board "$2"
@@ -509,6 +612,9 @@ case "$1" in
         ;;
 
     "-c")
+        # Header
+        main_header
+
         # clean the build environment
         echo "Cleaning the environment"
 
@@ -528,7 +634,10 @@ case "$1" in
         # $2 [board]
         # $3 [file]
 
-        # mesaage
+        # Header
+        main_header
+
+        # message
         echo "Verify the sketch"
         echo "================="
 
@@ -550,6 +659,9 @@ case "$1" in
         # $2 [board]
         # $3 [file]
         # $4 [serialport]"
+
+        # Header
+        main_header
 
         echo "Upload the sketch"
         echo "================="
