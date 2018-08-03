@@ -384,9 +384,9 @@ detailed_help() {
     echo "  * Verify the sketch (aka compile it)"
     echo "  * Uploading it to the board"
     echo " "
-    echo " Cleaning the build environment:"
-    echo " ==============================="
-    echo " amake -c [file]"
+    echo "Cleaning the build environment:"
+    echo "==============================="
+    echo "amake -c [file]"
     echo "    'file' is the main project file that must have the "
     echo "    .ino extension, for example blink.ino"
     echo "    If you have successfully compiled the project before"
@@ -397,9 +397,9 @@ detailed_help() {
     echo " "
     echo "    Example: amake -c blink.ino"
     echo " "
-    echo " Verify (Compile) a sketch:"
-    echo " =========================="
-    echo " amake -v [arduino_board_alias] [file]"
+    echo "Verify (Compile) a sketch:"
+    echo "=========================="
+    echo "amake -v [arduino_board_alias] [file]"
     echo "    'arduino_board_alias' refers to the specific board, see "
     echo "    'amake -b' output for details."
     echo " "
@@ -418,9 +418,9 @@ detailed_help() {
     echo "    Example: amake -v uno blink.ino"
     echo "    Example: amake -v (second time if first run result in no error)"
     echo " "
-    echo " Uploading the firmware to a board:"
-    echo " =================================="
-    echo " amake -u [arduino_board_alias] [file] [serialport]"
+    echo "Uploading the firmware to a board:"
+    echo "=================================="
+    echo "amake -u [arduino_board_alias] [file] [serialport]"
     echo "    'arduino_board_alias' refers to the specific board see the "
     echo "    'amake -b' output"
     echo " "
@@ -440,12 +440,12 @@ detailed_help() {
     echo "    Example: amake -u uno test.ino arduino /dev/ttyUSB0"
     echo "    Example: amake -u (second time if first run result in no error)"
     echo " "
-    echo " You can get more info with the 'amake -b' command"
+    echo "You can get more info with the 'amake -b' command"
     echo " "
-    echo " You can contribute testing other boards and help the developer to get"
-    echo " them supported, please do contact me at pavelmc@gmail.com"
+    echo "You can contribute testing other boards and help the developer to get"
+    echo "them supported, please do contact me at pavelmc@gmail.com"
     echo " "
-    echo " Project website: https://github.com/pavelmc/amake/"
+    echo "Project website: https://github.com/pavelmc/amake/"
     echo " "
     echo "Supported board aliases:"
     echo "========================"
@@ -592,6 +592,22 @@ build_path() {
 }
 
 
+# procedure to show a block of text and use scrolling when possible
+scrolling_text() {
+    # Parameter #1 text to show
+    LESS=`which less`
+    if [ -n "$LESS" ] ; then
+        echo "$1" | less
+    else
+        MORE=`which more`
+        if [ -n "$MORE" ] ; then
+            echo "$1" | more
+        else
+            echo "$1"
+        fi
+    fi
+}
+
 # Some defaults and auto detection
 ################################################################################
 # loading data from the user's home
@@ -633,7 +649,8 @@ case "$1" in
 
     "-b")
         # print supported boards
-        boards show
+        T=`boards show`
+        scrolling_text "$T"
         ;;
 
     "-c")
@@ -651,17 +668,8 @@ case "$1" in
         ;;
 
     "-h")
-        LESS=`which less`
-        if [ -n "$LESS" ] ; then
-            detailed_help | less
-        else
-            MORE=`which more`
-            if [ -n "$MORE" ] ; then
-                detailed_help | more
-            else
-                detailed_help
-            fi
-        fi
+        T=`detailed_help`
+        scrolling_text "$T"
         ;;
 
     "-v")
