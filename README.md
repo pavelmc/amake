@@ -31,22 +31,33 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 Version 1.1
 
-* August/2018: Adding auto detection of the Arduino IDE instalation; you need to have it installed from the repo or downloaded from www.arduino.cc and installed in a folder under your HOME folder, you must have **just one version** of the Arduino IDE unzipped in you HOME. See the "Configuration" section below
-* May/2018: Adding a option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Don Haig)
+* August/2018: Adding auto detection of the Arduino IDE instalation; you need it installed from the repo or downloaded from www.arduino.cc see the "Configuration" section below. (Thanks to Kjell Morgenstern for the inintial feature proposition)
+* May/2018: Adding an option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Thanks to Don Haig)
 * May/2018: The script can now handle devices (boards) with multiple serial identifiers (like clone leonardo boards before being programmed with Arduino) Thanks to Don Haig for pointing the issue and testing the proposed fix.
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
 * Sep/2017: Bug fix, arduino files with multiple dots in name (like raduino_v1.22.ino) get mangled and the scripts fails, fixed now via a "rev" trick in the shell.
-* Feb/2017: Ease the work with multiple .ino files. You need to make a "amake -c" and then a compilation against the main arduino file, from that point you can compile any .ino file in your editor. (The "amake -c" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
+* Feb/2017: Ease the work with multiple .ino files. You need to make a "amake -c" and then a compilation against the main arduino file "amake -v yourfile.ino", from that point you can compile any .ino file in your editor. (The "amake -c" command reset this behavior, so if you renamed the main arduino file, just make a "clean" and then compile the main file to set it)
 * Feb/2017: Make the IDE version configurable and advice the users to do so, as this do impact in code (and firmware) optimizations, and some more little improvements
 * Feb/2017: Auto detection of the serial port; for now just USB-Serial adapters based on the CH340/341 chips.
 
 ## Configuration ##
 
-You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like in your home folder, then run the install.sh script to set it up; if you get into troubles Google is your friend : "How to install the Arduino IDE in linux" (https://www.arduino.cc/en/Guide/Linux)
+You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http://www.arduino.cc); the installation is out of the scope of this document, but Google is your friend: ["How to install the Arduino IDE in linux"](https://www.arduino.cc/en/Guide/Linux) 
 
-**WARNING:** From August/2018 the software makes an auto-detection of the Arduino IDE installed, this auto-detection can fail if you have more than one instance (version) of the Arduino IDE; please remove the install directory for older versions to get rid of this issues.
+As the official doc says, put it or install it on any folder, but always under your $HOME directory.
 
-Then downloade and extract the amake-master.zip from this project **BIG GREEN BUTTON**, you need to move the amake file to a folder named "bin" in you home folder (you must create it if not there already)
+**WARNING:** From August/2018 the software makes an auto-detection of the Arduino IDE installed, this auto-detection can fail if you have more than one instance (version) of the Arduino IDE; please remove the install directory for older versions to get rid of this issues. You has been warned.
+
+Then download and extract the code from this project **(BIG GREEN BUTTON at top-right)**, now you need to install the software. For that you need to fire a terminal/console/shell and move to the folder you extracted the amake documents; then run the install script, like this:
+
+```
+pavel@laptop:~$ chmod +x install.sh
+pavel@laptop:~$ ./install.sh
+Installing amake script, you will be asked for a password, please give it.
+[sudo] Password for user pavel:
+Done.
+pavel@laptop:~$
+```
 
 Next step is to make the amake file executable, you can use your graphic interface tool (right click > properties > make executable) or using the basic command line, like this:
 
