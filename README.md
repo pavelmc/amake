@@ -42,7 +42,7 @@ Version 1.1
 
 ## Configuration ##
 
-You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like in your home folder, then run the install.sh script to set it up; if you get into troubles Google is your friend : "How to install the Arduino IDE in linux"
+You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http[://www.arduino.cc) please download the file (.tar.xz one) and extract it, put the folder where you like in your home folder, then run the install.sh script to set it up; if you get into troubles Google is your friend : "How to install the Arduino IDE in linux" (https://www.arduino.cc/en/Guide/Linux)
 
 **WARNING:** From August/2018 the software makes an auto-detection of the Arduino IDE installed, this auto-detection can fail if you have more than one instance (version) of the Arduino IDE; please remove the install directory for older versions to get rid of this issues.
 

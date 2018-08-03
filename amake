@@ -31,39 +31,40 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #########################################################################
 
-VERSION=1.0
+# Variables
+#################
+VERSION=1.1
 AUTHOR="Pavel Milanes, pavelmc@gmail.com, CO7WT"
 DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
-
-# preserve actual directory
+SERIAL="/dev/ttyUSB0"
+USERCONF="$HOME/.amake"
 ADIR=`pwd`
 
 # Detection and creation of a user local configuration
 ################################################################################
 
-# function to run some checks on the APATH var to see if it valid
+# Function to run some checks on the APATH var to see if it valid
 valid_arduino_ide() {
-    # passed as Argument #1
-
-    # we check if ther is a particular file
-    if [ -f "$1/hardware/package_index_bundled.json" ] ; then
-        # it look like it, get some output from the executable
+    # PATH to arduino soft as argument $1
+    # Check if the file is there and executable
+    
+    if [ -x "$1" ] ; then
+        # It look like the real thing
+        # Get some output from the executable
+        # [TODO: IMPROVE THIS, it's slow]
         TMP=`mktemp`
-        "$1/arduino" --help &> $TMP
+        "$1" --help &> $TMP
 
         TEST=`cat "$TMP" | grep JAVA_TOOL_OPTIONS`
         rm $TMP
-        if [ "$TEST" == "" ] ; then
-            # not
-            echo ""
-        else
-            # yes, finish
+        if [ -n "$TEST" ] ; then
             echo "Valid"
         fi
     fi
 }
 
-# Create or update a user configuation
+
+# Create or update the user configuration
 user_conf() {
     # two arguments
     # 1 - APATH
@@ -75,7 +76,7 @@ user_conf() {
 
     echo "# User configuration file for amake, mostly auto detected settings." > $UC
     echo "###################################################################" >> $UC
-    echo "# Arduino Path, the folder in which the Arduino IDE is" >> $UC
+    echo "# Arduino exec path, the full path to the arduino executable:" >> $UC
     echo "APATH=\"$1\"" >> $UC
     echo "" >> $UC
     echo "# Deafult Serial port" >> $UC
@@ -84,41 +85,94 @@ user_conf() {
     cd $WD
 }
 
-# Function to detect and output the first appearance of a local arduino IDE
-# folder, installed from the repository or manually, if manually it must be
-# below the user home folder ($HOME), manually has precedence over repo.
+
+# Detect the Arduino IDE app path
+###############################################################################
+# We use a few tricks here:
+#  1 - Use the mime-type associated with the ".ino" files (this will work 100%
+#      if  you use a Desktop Environment like Gnome or KDE)
+#  2 - Do a general search in the $HOME of the user, 1st drawback: if you have
+#      multiple folders with installs of the Arduino IDE the pick will be at
+#      random (work with headless Linux boxes, aka: no DE)
+#  3 - Last auto detection trick: use the registered path in $PATH of the one
+#      Installed from the linux repository
+#  4 - Manual mode: use the path you set in the file $HOME/.amake
 get_arduino_ide() {
-    AIDE=`find ~/ -type f -executable -name *arduino 2> /dev/null | \
-        rev | cut -d "/" -f 2- | rev | head -n1`
+    # Option #1: Use the mime-type associated with the ".ino" files.
+    # Fast, but works only if a DE is installed
+    DSKTOP=`xdg-mime query default text/x-arduino`
+    if [ -n "$DSKTOP" ] ; then
+        # Value returned, get the path from the .desktop file
+        FILE=`find $HOME -name *$DSKTOP 2> /dev/null | head -n1`
+        if [ -n "$FILE" ] ; then
+            # set it
+            AIDE=`cat $FILE | grep Exec | cut -d "=" -f2`
 
-    # found it
-    if [ "$AIDE" == "" ] ; then
-        # not, it the repository version installed? or in the path?
-        AIDE=`which arduino`
+            # ok, but it's working?
+            VALID=`valid_arduino_ide "$AIDE"`
+            if [ -n "$VALID" ] ; then
+                echo "$AIDE"
+                user_conf "$AIDE" "$SERIAL"
 
-        # test if ther is a repo or path version
-        if [ "$AIDE" == "" ] ; then
-            # no..
-            echo "/dev/null"
-        else
-            # yesss, extract the folder
-            FAIDE=`echo "$AIDE" | rev | cut -d "/" -f 2- | rev`
-            echo "$FAIDE"
-            SERIAL="/dev/ttyUSB0"
-            user_conf "$FAIDE" "$SERIAL"
-        fi
-    else
-        # confirm it
-        VALID=`valid_arduino_ide "$AIDE"`
-        if [ "$VALID" == "Valid" ] ; then
-            # yesss
-            echo "$AIDE"
-            SERIAL="/dev/ttyUSB0"
-            user_conf "$AIDE" "$SERIAL"
-        else
-            echo "/dev/null"
+                # stop this function
+                return
+            fi
         fi
     fi
+
+    # Option #2: Do a general search in the $HOME of the user.
+    # Slow, but reliable, prone to errors
+    AIDE=`find ~/ -type f -executable -name *arduino 2> /dev/null | \
+        head -n1`
+
+    # found it?
+    if [ -n "$AIDE" ] ; then
+        # ok, but it's working?
+        VALID=`valid_arduino_ide "$AIDE"`
+        if [ "$VALID" == "Valid" ] ; then
+            echo "$AIDE"
+            user_conf "$AIDE" "$SERIAL"
+
+            # stop this function
+            return
+        fi
+    fi
+
+    # Option #3: Registered path in $PATH
+    # Use the repository version installed? or in the path?
+    AIDE=`which arduino`
+
+    # ok, but it's working?
+    VALID=`valid_arduino_ide "$AIDE"`
+    if [ -n "$VALID" ] ; then
+        echo "$AIDE"
+        user_conf "$AIDE" "$SERIAL"
+
+        # stop this function
+        return
+    fi
+        
+    # Option #4: last resort the user ser the correct path in the $HOME/.amake file
+    # Drawback: the user has to set it manually.
+    if [ -r "$USERCONF" ] ; then
+        . "$USERCONF"
+        AIDE="$APATH"
+        APATH=""
+        
+        VALID=`valid_arduino_ide "$AIDE"`
+        if [ -n "$VALID" ] ; then
+            echo "$AIDE"
+            user_conf "$AIDE" "$SERIAL"
+
+            # stop this function
+            return
+        fi
+    fi
+
+    # catch all
+    echo "We can not detect a working Arduino IDE environment on this PC"
+    echo "please red the README.md file for instructions"
+    exit 1
 }
 
 
@@ -143,9 +197,12 @@ PORTS=()
 # success it will set it in a hidden file (linux); from this point
 # forward we can compile against any file in the sketch.
 filename() {
-    if [ -e ".amake" ] ; then
+    # Arguments
+    # 1 - filename with the .ino ending
+    
+    if [ -r "$ADIR/.amake" ] ; then
         # load the variables from the file
-        . .amake
+        . "$ADIR/.amake"
     else
         # not set, parse from command line
         N=`echo $1 | rev | cut -d "." -f 2- | rev`
@@ -265,7 +322,7 @@ which_board() {
 main_header() {
     echo "$(basename $0) - version $VERSION by $AUTHOR"
     echo "$DESCRIPTION"
-    echo "Using the Arduno IDE here:"
+    echo "Using the Arduno IDE from here:"
     echo "$APATH"
     echo "==============================================================="
     echo ""
@@ -274,11 +331,8 @@ main_header() {
 
 # Compiler function
 compile() {
-    # change path
-    cd "$APATH"
-
     # compile it
-    "$APATH/arduino" --verify --board "$MCUSTR" \
+    "$APATH" --verify --board "$MCUSTR" \
         --pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
 
     # if compilation worked save the main file name into a hidden file on
@@ -292,14 +346,11 @@ compile() {
 
 # Upload function
 upload() {
-    # change path
-    cd "$APATH"
-
     # alerting the user of the port to use
-    echo "> Uploading to = '$PORT'"
+    echo "> Uploading to '$PORT'"
 
     # compile it
-    "$APATH/arduino" --upload --board "$MCUSTR" --port "$PORT" \
+    "$APATH" --upload --board "$MCUSTR" --port "$PORT" \
         --pref "build.path=$BPATH" --verbose "$ADIR/$FILE"
 
     # if compilation worked save the main file name into a hidden file on
@@ -571,7 +622,6 @@ build_path() {
 # Some defaults and auto detection
 ################################################################################
 # loading data from the user's home
-USERCONF="$HOME/.amake"
 if [ -r "$USERCONF" ] ; then
     . "$USERCONF"
 
@@ -583,15 +633,17 @@ if [ -r "$USERCONF" ] ; then
         APATH=`get_arduino_ide`
     fi
 else
+    # try to detect it
     APATH=`get_arduino_ide`
-
-    # APATH is valid?
-    VALID=`valid_arduino_ide "$APATH"`
-    if [ "$VALID" == "" ] ; then
-        echo "No valid Arduino IDE in your Home, plase install one."
-        exit 1
-    fi
 fi
+
+# validate the arduino exec path
+VALID=`valid_arduino_ide "$APATH"`
+if [ "$VALID" == "" ] ; then
+    echo "No valid Arduino IDE found, plase install one."
+    exit 1
+fi
+
 
 # Do it
 ################################################################################
