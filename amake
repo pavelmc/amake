@@ -47,17 +47,13 @@ ADIR=`pwd`
 valid_arduino_ide() {
     # PATH to arduino soft as argument $1
     # Check if the file is there and executable
-    
+
     if [ -x "$1" ] ; then
         # It look like the real thing
         # Get some output from the executable
-        # [TODO: IMPROVE THIS, it's slow]
-        TMP=`mktemp`
-        "$1" --help &> $TMP
+        LNX=`$1 --get-pref runtime.os 2> /dev/null | grep linux`
 
-        TEST=`cat "$TMP" | grep JAVA_TOOL_OPTIONS`
-        rm $TMP
-        if [ -n "$TEST" ] ; then
+        if [ "$LNX" == "linux" ] ; then
             echo "Valid"
         fi
     fi
@@ -151,14 +147,14 @@ get_arduino_ide() {
         # stop this function
         return
     fi
-        
+
     # Option #4: last resort the user ser the correct path in the $HOME/.amake file
     # Drawback: the user has to set it manually.
     if [ -r "$USERCONF" ] ; then
         . "$USERCONF"
         AIDE="$APATH"
         APATH=""
-        
+
         VALID=`valid_arduino_ide "$AIDE"`
         if [ -n "$VALID" ] ; then
             echo "$AIDE"
@@ -199,7 +195,7 @@ PORTS=()
 filename() {
     # Arguments
     # 1 - filename with the .ino ending
-    
+
     if [ -r "$ADIR/.amake" ] ; then
         # load the variables from the file
         . "$ADIR/.amake"
