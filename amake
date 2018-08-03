@@ -33,7 +33,7 @@
 
 # Variables
 #################
-VERSION=1.1
+VERSION=1.2
 AUTHOR="Pavel Milanes, pavelmc@gmail.com, CO7WT"
 DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
 SERIAL="/dev/ttyUSB0"

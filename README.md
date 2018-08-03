@@ -29,7 +29,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 ## Changelog ##
 
-Version 1.1
+Version 1.2
 
 * August/2018: Adding auto detection of the Arduino IDE instalation; you need it installed from the repo or downloaded from www.arduino.cc see the "Configuration" section below. (Thanks to Kjell Morgenstern for the inintial feature proposition)
 * May/2018: Adding an option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Thanks to Don Haig)
