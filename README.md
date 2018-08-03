@@ -59,12 +59,6 @@ Done.
 pavel@laptop:~$
 ```
 
-Next step is to make the amake file executable, you can use your graphic interface tool (right click > properties > make executable) or using the basic command line, like this:
-
-```
-chmod +x $HOME/bin/amake
-```
-
 Now is time to run & test it, run this in any bash console:
 
 ```
