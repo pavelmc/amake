@@ -42,13 +42,13 @@ Version 1.1
 
 ## Configuration ##
 
-You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http://www.arduino.cc); the installation is out of the scope of this document, but Google is your friend: ["How to install the Arduino IDE in linux"](https://www.arduino.cc/en/Guide/Linux) 
+You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http://www.arduino.cc); the installation is out of the scope of this document, but Google is your friend: ["How to install the Arduino IDE in linux"](https://www.arduino.cc/en/Guide/Linux)
 
 As the official doc says, put it or install it on any folder, but always under your $HOME directory.
 
 **WARNING:** From August/2018 the software makes an auto-detection of the Arduino IDE installed, this auto-detection can fail if you have more than one instance (version) of the Arduino IDE; please remove the install directory for older versions to get rid of this issues. You has been warned.
 
-Then download and extract the code from this project **(BIG GREEN BUTTON at top-right)**, now you need to install the software. For that you need to fire a terminal/console/shell and move to the folder you extracted the amake documents; then run the install script, like this:
+Then download and extract the code from this project **(GREEN button at top-right "Clone or download")**, now you need to install the software. For that you need to fire a terminal/console/shell and move to the folder you extracted the amake documents; then run the install script, like this:
 
 ```
 pavel@laptop:~$ chmod +x install.sh
