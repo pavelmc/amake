@@ -378,10 +378,7 @@ usage() {
 
 # Show detailed help
 detailed_help() {
-    echo "$(basename $0) - version $VERSION by $AUTHOR"
-    echo "$DESCRIPTION"
-    echo "==============================================================="
-    echo " "
+    main_header
     echo "Usage: this script has 3 main use modes:"
     echo "  * Cleaning the environment"
     echo "  * Verify the sketch (aka compile it)"
@@ -399,14 +396,6 @@ detailed_help() {
     echo "    all the platforms, boards and sketchs in this PC"
     echo " "
     echo "    Example: amake -c blink.ino"
-    echo " "
-
-    echo "Continue'? (Y/n)"
-    read -n 1 response
-    if [ "$response" = "n" ] || [ "$response" = "N" ] ; then
-        return
-    fi
-
     echo " "
     echo " Verify (Compile) a sketch:"
     echo " =========================="
@@ -428,14 +417,6 @@ detailed_help() {
     echo " "
     echo "    Example: amake -v uno blink.ino"
     echo "    Example: amake -v (second time if first run result in no error)"
-    echo " "
-
-    echo "Continue'? (Y/n)"
-    read -n 1 response
-    if [ "$response" = "n" ] || [ "$response" = "N" ] ; then
-        return
-    fi
-
     echo " "
     echo " Uploading the firmware to a board:"
     echo " =================================="
@@ -465,14 +446,6 @@ detailed_help() {
     echo " them supported, please do contact me at pavelmc@gmail.com"
     echo " "
     echo " Project website: https://github.com/pavelmc/amake/"
-    echo " "
-
-    echo "Continue'? (Y/n)"
-    read -n 1 response
-    if [ "$response" = "n" ] || [ "$response" = "N" ] ; then
-        return
-    fi
-
     echo " "
     echo "Supported board aliases:"
     echo "========================"
@@ -678,7 +651,17 @@ case "$1" in
         ;;
 
     "-h")
-        detailed_help
+        LESS=`which less`
+        if [ -n "$LESS" ] ; then
+            detailed_help | less
+        else
+            MORE=`which more`
+            if [ -n "$MORE" ] ; then
+                detailed_help | more
+            else
+                detailed_help
+            fi
+        fi
         ;;
 
     "-v")
