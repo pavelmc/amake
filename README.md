@@ -31,7 +31,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 Version 1.2
 
-* August/2018: Adding auto detection of the Arduino IDE instalation; you need it installed from the repo or downloaded from www.arduino.cc see the "Configuration" section below. (Thanks to Kjell Morgenstern for the inintial feature proposition)
+* August/2018: Adding auto detection of the Arduino IDE installation; it works either if you installed from the repo, downloaded from www.arduino.cc and install it manually or install it using [ubuntu-make](https://wiki.ubuntu.com/ubuntu-make) see the "Configuration" section below. (Thanks to Kjell Morgenstern for the initial feature proposition)
 * May/2018: Adding an option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Thanks to Don Haig)
 * May/2018: The script can now handle devices (boards) with multiple serial identifiers (like clone leonardo boards before being programmed with Arduino) Thanks to Don Haig for pointing the issue and testing the proposed fix.
 * May/2018: Switch to full arduino CLI support, now we can compile/upload via CLI EVERY board you have supported in your Arduino IDE environment; thanks to Don Haig for asking support for a non native arduino board, that request push me to give some love to this project again.
@@ -45,6 +45,8 @@ Version 1.2
 You need the Arduino IDE software for Linux in a version equal or greater than 1.6.9 (oldest version that I can test), you can get it on the [official Arduino Site](http://www.arduino.cc); the installation is out of the scope of this document, but Google is your friend: ["How to install the Arduino IDE in linux"](https://www.arduino.cc/en/Guide/Linux)
 
 As the official doc says, put it or install it on any folder, but always under your $HOME directory.
+
+Alternatively it you use Ubuntu you can give the [ubuntu-make](https://wiki.ubuntu.com/ubuntu-make) software a try.
 
 **WARNING:** From August/2018 the software makes an auto-detection of the Arduino IDE installed, this auto-detection can fail if you have more than one instance (version) of the Arduino IDE; please remove the install directory for older versions to get rid of this issues. You has been warned.
 
@@ -64,6 +66,8 @@ Now is time to run & test it, run this in any bash console:
 ```
 amake
 ```
+
+**Warning**: The first time you run the script it may run slow as it's working on the auto detection behind scenes.
 
 If all goes well you will get the "usage" text, read it, then try this to know what boards are supported by aliases:
 
