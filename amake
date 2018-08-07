@@ -40,8 +40,10 @@ SERIAL="/dev/ttyUSB0"
 USERCONF="$HOME/.amake"
 ADIR=`pwd`
 
+
 # Detection and creation of a user local configuration
 ################################################################################
+
 
 # Function to run some checks on the APATH var to see if it valid
 valid_arduino_ide() {
@@ -85,17 +87,33 @@ user_conf() {
 # Detect the Arduino IDE app path
 ###############################################################################
 # We use a few tricks here:
-#  1 - Use the mime-type associated with the ".ino" files (this will work 100%
-#      if  you use a Desktop Environment like Gnome or KDE)
-#  2 - Do a general search in the $HOME of the user, 1st drawback: if you have
+#  1 - Fast auto detection trick: use the registered path in $PATH for the ones
+#      that set it.
+#  2 - Use the mime-type associated with the ".ino" files (this will work 100%
+#      if  you use a Desktop Environment like Gnome or KDE) after you install
+#      the Arduno IDE from the Official site.
+#  3 - Do a general search in the $HOME of the user, 1st drawback: if you have
 #      multiple folders with installs of the Arduino IDE the pick will be at
 #      random (work with headless Linux boxes, aka: no DE)
-#  3 - Last auto detection trick: use the registered path in $PATH of the one
-#      Installed from the linux repository
 #  4 - Manual mode: use the path you set in the file $HOME/.amake
 get_arduino_ide() {
-    # Option #1: Use the mime-type associated with the ".ino" files.
-    # Fast, but works only if a DE is installed
+    # Option #1: Registered path in $PATH
+    # Use the repository version installed? or in the path?
+    # Fast as hell.
+    AIDE=`which arduino`
+
+    # ok, but it's working?
+    VALID=`valid_arduino_ide "$AIDE"`
+    if [ -n "$VALID" ] ; then
+        echo "$AIDE"
+        user_conf "$AIDE" "$SERIAL"
+
+        # stop this function
+        return
+    fi
+
+    # Option #2: Use the mime-type associated with the ".ino" files.
+    # midd speed, but works only if a DE is installed
     DSKTOP=`xdg-mime query default text/x-arduino`
     if [ -n "$DSKTOP" ] ; then
         # Value returned, get the path from the .desktop file
@@ -116,7 +134,7 @@ get_arduino_ide() {
         fi
     fi
 
-    # Option #2: Do a general search in the $HOME of the user.
+    # Option #3: Do a general search in the $HOME of the user.
     # Slow, but reliable, prone to errors
     AIDE=`find ~/ -type f -executable -name *arduino 2> /dev/null | \
         head -n1`
@@ -132,20 +150,6 @@ get_arduino_ide() {
             # stop this function
             return
         fi
-    fi
-
-    # Option #3: Registered path in $PATH
-    # Use the repository version installed? or in the path?
-    AIDE=`which arduino`
-
-    # ok, but it's working?
-    VALID=`valid_arduino_ide "$AIDE"`
-    if [ -n "$VALID" ] ; then
-        echo "$AIDE"
-        user_conf "$AIDE" "$SERIAL"
-
-        # stop this function
-        return
     fi
 
     # Option #4: last resort the user ser the correct path in the $HOME/.amake file
@@ -176,6 +180,7 @@ get_arduino_ide() {
 # default for stock arduinos, see note below about this
 SERIDS=(1a86_USB2.0-Ser)
 
+
 # You can specify a default Serial ID for a specific board to force the detection
 #################################################################################
 # see which_board procedure in the case of the Adafruit_Trinket_M0, you can add
@@ -183,8 +188,10 @@ SERIDS=(1a86_USB2.0-Ser)
 # the case of the leonardo board in the same place) you may put two or more
 # separated by a space, no leading or trailing spaces must be in there
 
+
 # array that will hold the auto-detected serial devices available
 PORTS=()
+
 
 # Test to find the configured name of the main file in multi-file cases.
 ################################################################################
@@ -604,6 +611,7 @@ scrolling_text() {
     fi
 }
 
+
 # Some defaults and auto detection
 ################################################################################
 # loading data from the user's home
@@ -621,6 +629,7 @@ else
     # try to detect it
     APATH=`get_arduino_ide`
 fi
+
 
 # validate the arduino exec path
 VALID=`valid_arduino_ide "$APATH"`
