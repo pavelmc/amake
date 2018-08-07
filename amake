@@ -67,6 +67,8 @@ user_conf() {
     # two arguments
     # 1 - APATH
     # 2 - Default serial
+    # 3 - Valid APATH (aka, the APATH was tested successfully)
+    #     Anything beside "" is ok
 
     WD=`pwd`
     cd ~
@@ -79,6 +81,10 @@ user_conf() {
     echo "" >> $UC
     echo "# Deafult Serial port" >> $UC
     echo "DEFAULT_PORT=\"$2\"" >> $UC
+    echo "" >> $UC
+    echo "# Whether the detected APATH is valid or not" >> $UC
+    echo "VALID_APATH=\"$2\"" >> $UC
+    echo "" >> $UC
 
     cd $WD
 }
@@ -106,7 +112,7 @@ get_arduino_ide() {
     VALID=`valid_arduino_ide "$AIDE"`
     if [ -n "$VALID" ] ; then
         echo "$AIDE"
-        user_conf "$AIDE" "$SERIAL"
+        user_conf "$AIDE" "$SERIAL" "True"
 
         # stop this function
         return
@@ -126,7 +132,7 @@ get_arduino_ide() {
             VALID=`valid_arduino_ide "$AIDE"`
             if [ -n "$VALID" ] ; then
                 echo "$AIDE"
-                user_conf "$AIDE" "$SERIAL"
+                user_conf "$AIDE" "$SERIAL" "True"
 
                 # stop this function
                 return
@@ -145,7 +151,7 @@ get_arduino_ide() {
         VALID=`valid_arduino_ide "$AIDE"`
         if [ "$VALID" == "Valid" ] ; then
             echo "$AIDE"
-            user_conf "$AIDE" "$SERIAL"
+            user_conf "$AIDE" "$SERIAL" "True"
 
             # stop this function
             return
@@ -162,7 +168,7 @@ get_arduino_ide() {
         VALID=`valid_arduino_ide "$AIDE"`
         if [ -n "$VALID" ] ; then
             echo "$AIDE"
-            user_conf "$AIDE" "$SERIAL"
+            user_conf "$AIDE" "$SERIAL" "True"
 
             # stop this function
             return
@@ -618,24 +624,14 @@ scrolling_text() {
 if [ -r "$USERCONF" ] ; then
     . "$USERCONF"
 
-    # APATH is valid?
-    VALID=`valid_arduino_ide "$APATH"`
-
-    if [ "$VALID" == "" ] ; then
+    #  The APATH in the config file is VALID
+    if [ "$VALID_APATH" = "" ] || [ "$APATH" = "" ] ; then
         echo "Invalid Arduino IDE configuration, auto detect it."
         APATH=`get_arduino_ide`
     fi
 else
     # try to detect it
     APATH=`get_arduino_ide`
-fi
-
-
-# validate the arduino exec path
-VALID=`valid_arduino_ide "$APATH"`
-if [ "$VALID" == "" ] ; then
-    echo "No valid Arduino IDE found, plase install one."
-    exit 1
 fi
 
 
