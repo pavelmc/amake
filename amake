@@ -313,7 +313,7 @@ which_board() {
                 if [ -z "$BOARD" ] ; then
                     # no board passed or loadable, message
                     echo "Did you passed a board value?"
-                    echo "It must be in \"oem:platform:board\" format to make sense"
+                    echo "It must be in \"oem:platform:board[,options]\" format to make sense"
                     echo "if not an alias, see README.md file"
 
                     # return error
