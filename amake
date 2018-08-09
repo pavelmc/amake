@@ -634,6 +634,8 @@ else
     APATH=`get_arduino_ide`
 fi
 
+# user ALIAS to refer to the board alias, to make code more readable
+ALIAS="$2"
 
 # Do it
 ################################################################################
@@ -643,7 +645,7 @@ case "$1" in
         main_header
 
         # board type passed?
-        valid_board "$2"
+        valid_board "$ALIAS"
         DETECT_ONLY="True"
         serial_detect
         ;;
@@ -689,10 +691,10 @@ case "$1" in
         valid_file "$3"
 
         # board type passed?
-        valid_board "$2"
+        valid_board "$ALIAS"
 
         # touch or create the persistent build path
-        build_path "$MCUSTR" "$FILE"
+        build_path "$ALIAS" "$FILE"
 
         # now we can compile
         compile
@@ -714,10 +716,10 @@ case "$1" in
         valid_file "$3"
 
         # board type passed?
-        valid_board "$2"
+        valid_board "$ALIAS"
 
         # touch or create the persistent build path
-        build_path "$MCUSTR" "$FILE"
+        build_path "$ALIAS" "$FILE"
 
         # if port is passed use it if not try to auto detect
         if [ -z "$4" ] ;  then
