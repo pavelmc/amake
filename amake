@@ -259,6 +259,9 @@ which_board() {
         nano328)
             MCUSTR="arduino:avr:nano:cpu=atmega328"
             ;;
+        nano328old)
+            MCUSTR="arduino:avr:nano:cpu=atmega328old"
+            ;;
         ng)
             MCUSTR="arduino:avr:atmegang:cpu=atmega168"
             ;;
