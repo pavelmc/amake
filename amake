@@ -731,7 +731,6 @@ case "$1" in
         # now we upload it
 
         for PORT in "${PORTS[@]}" ; do
-            echo "Uploading to = '$PORT'"
             upload
         done
         ;;
