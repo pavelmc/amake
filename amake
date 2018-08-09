@@ -386,6 +386,7 @@ usage() {
     echo "       -h    output detailed help information"
     echo "       -v    verify (compile) the sketch (file)"
     echo "       -u    upload .hex file to board(s)"
+    echo "       -s    connect to a serial terminal for monitoring"
 }
 
 
@@ -452,6 +453,18 @@ detailed_help() {
     echo " "
     echo "    Example: amake -u uno test.ino arduino /dev/ttyUSB0"
     echo "    Example: amake -u (second time if first run result in no error)"
+    echo " "
+    echo "Monitoring via serial output:"
+    echo "=================================="
+    echo "amake -s [speed] [serialport]"
+    echo "    'speed' is the serial speed, defaults to 9600"
+    echo "    'serialport' is the serial port on which your device listen, it"
+    echo "     defaults to /dev/ttyUSB0 or to the auto detected value"
+    echo " "
+    echo "    If you use the default values, any of them can be omitted (this)"
+    echo "    may bite you, will fix in near future, by now we are reading "
+    echo "    only, soon we will have full interaction."
+    echo " "
     echo " "
     echo "You can get more info with the 'amake -b' command"
     echo " "
@@ -740,6 +753,43 @@ case "$1" in
         for PORT in "${PORTS[@]}" ; do
             upload
         done
+        ;;
+
+    "-s")
+        # Serial Monitor
+        # $2 [speed]
+        # $3 [serial port]
+
+        # Header
+        main_header
+
+        # message
+        echo "Opening Serial Comms [Ctrl+C to exit]"
+        echo "====================================="
+
+        # if port is passed use it if not try to auto detect
+        if [ -z "$3" ] ;  then
+            # try to autodetect
+            serial_detect
+        else
+            # use what's the user passed
+            PORTS="$3"
+        fi
+
+        # there is a speed passed? the use it
+        if [ -z "$2" ] ;  then
+            # try to autodetect
+            SPEED=9600
+        else
+            # use what's the user passed
+            SPEED="$2"
+        fi
+
+        # configure the port
+        stty -F "$PORTS" cs8 "$SPEED" ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon -crtscts raw
+
+        # connect to it
+        cat < /dev/ttyUSB0
         ;;
 
     *)
