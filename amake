@@ -300,6 +300,10 @@ which_board() {
             MCUSTR="arduino:avr:mega:cpu=atmega1280"
             ;;
 
+        lolinv3)
+            MCUSTR="esp8266:esp8266:nodemcuv2:CpuFrequency=80,VTable=flash,FlashSize=4M1M,LwIPVariant=v2mss536,Debug=Disabled,DebugLevel=None____,FlashErase=none,UploadSpeed=115200"
+            ;;
+
         *)
             # not a preset alias
             # if in "oem:platform:board" patter just return it
@@ -502,6 +506,7 @@ boards() {
     echo "   mc128e16MHz = MegaCore ATMega128 @ 16MHz external (MegaCore)"
     echo "      mega2560 = Arduino Mega 2560 (Mega, cpu ATMega2560)"
     echo "          mega = Arduino Mega (Mega, cpu ATMega1280)"
+    echo "       lolinv3 = NodeMCU Lolin (wemos.cc) NodeMcu V3"
     echo " "
 }
 
