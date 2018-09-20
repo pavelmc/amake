@@ -798,7 +798,7 @@ case "$1" in
         stty -F "$PORTS" cs8 "$SPEED" ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon -crtscts raw
 
         # connect to it
-        cat < /dev/ttyUSB0
+        cat < $SERIAL
         ;;
 
     *)
