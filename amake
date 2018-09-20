@@ -39,6 +39,7 @@ DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
 SERIAL="/dev/ttyUSB0"
 USERCONF="$HOME/.amake"
 ADIR=`pwd`
+DEFAULT_PORT="$SERIAL"
 
 
 # Detection and creation of a user local configuration
