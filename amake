@@ -37,6 +37,7 @@ VERSION=1.2
 AUTHOR="Pavel Milanes, pavelmc@gmail.com, CO7WT"
 DESCRIPTION="A very simple Arduino IDE command line interface for Linux"
 SERIAL="/dev/ttyUSB0"
+SPEED="9600"
 USERCONF="$HOME/.amake"
 ADIR=`pwd`
 DEFAULT_PORT="$SERIAL"
@@ -65,7 +66,7 @@ valid_arduino_ide() {
 
 # Create or update the user configuration
 user_conf() {
-    # two arguments
+    # Arguments
     # 1 - APATH
     # 2 - Default serial
     # 3 - Valid APATH (aka, the APATH was tested successfully)
@@ -464,15 +465,13 @@ detailed_help() {
     echo " "
     echo "Monitoring via serial output:"
     echo "=================================="
-    echo "amake -s [speed] [serialport]"
-    echo "    'speed' is the serial speed, defaults to 9600"
+    echo "amake -s [serialport] [speed]"
     echo "    'serialport' is the serial port on which your device listen, it"
     echo "     defaults to /dev/ttyUSB0 or to the auto detected value"
+    echo "    'speed' is the serial speed, defaults to 9600 if can't be autodetected"
     echo " "
-    echo "    If you use the default values, any of them can be omitted (this)"
-    echo "    may bite you, will fix in near future, by now we are reading "
-    echo "    only, soon we will have full interaction."
-    echo " "
+    echo "    If you use the default values, and you have already verified (compiled)"
+    echo "    the sketch, any of them can be omitted (will be autodetected)"
     echo " "
     echo "You can get more info with the 'amake -b' command"
     echo " "
@@ -554,13 +553,13 @@ serial_detect() {
 
     # found only one port that matched
     if [ ${#PORTS[@]} -eq 1 ] ; then
-        echo "Autodetected serial port is: '${PORTS[0]}'"
+        echo "> Autodetected serial port is: '${PORTS[0]}'"
         return
     fi
 
     # found no ports that matched
     if [ ${#PORTS[@]} -eq 0 ] ; then
-        echo "Can't autodetect. Defaulting to $DEFAULT_PORT"
+        echo "> Can't autodetect. Defaulting to $DEFAULT_PORT"
         PORT[0]="$DEFAULT_PORT"
         return
     fi
@@ -646,6 +645,26 @@ scrolling_text() {
 }
 
 
+# Get the serial speed from the file, if can't detect it, then 9600
+get_serial_speed() {
+    # extract
+    TS=`cat *.ino | grep Serial.begin `
+    SPEED=`echo $TS | cut -d "(" -f 2 | cut -d ")" -f 1`
+
+    # test if valid
+    if [ "$SPEED" == "" ] ; then
+        # no, go, default to 9600
+        SPEED="9600"
+        echo "> Can't detect the serial speed on the files, defaults to 9600"
+    else
+        # yes, auto detected
+        echo "> Serial speed detected from files: $SPEED"
+    fi
+
+    echo " "
+}
+
+
 # Some defaults and auto detection
 ################################################################################
 # loading data from the user's home
@@ -653,7 +672,7 @@ if [ -r "$USERCONF" ] ; then
     . "$USERCONF"
 
     #  The APATH in the config file is VALID
-    if [ "$VALID_APATH" = "" ] || [ "$APATH" = "" ] ; then
+    if [ "$VALID_APATH" == "" ] || [ "$APATH" == "" ] ; then
         echo "Invalid Arduino IDE configuration, auto detect it."
         APATH=`get_arduino_ide`
     fi
@@ -767,8 +786,8 @@ case "$1" in
 
     "-s")
         # Serial Monitor
-        # $2 [speed]
-        # $3 [serial port]
+        # $2 [serialport]
+        # $3 [speed] optional, is taken from the file if possible
 
         # Header
         main_header
@@ -778,28 +797,28 @@ case "$1" in
         echo "====================================="
 
         # if port is passed use it if not try to auto detect
-        if [ -z "$3" ] ;  then
+        if [ -z "$2" ] ;  then
             # try to autodetect
             serial_detect
         else
             # use what's the user passed
-            PORTS="$3"
+            PORTS="$2"
         fi
 
         # there is a speed passed? the use it
-        if [ -z "$2" ] ;  then
-            # try to autodetect
-            SPEED=9600
+        if [ -z "$3" ] ;  then
+            # speed not passed by the user, try to auto detect
+            get_serial_speed
         else
             # use what's the user passed
-            SPEED="$2"
+            SPEED="$3"
         fi
 
         # configure the port
         stty -F "$PORTS" cs8 "$SPEED" ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon -crtscts raw
 
         # connect to it
-        cat < $SERIAL
+        cat < $PORTS
         ;;
 
     *)
