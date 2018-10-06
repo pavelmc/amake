@@ -31,6 +31,7 @@ This script is a way to make the Arduino IDE CLI even simpler, I will support it
 
 Version 1.2
 
+* October/2018: Fixing for good the serial monitor feature ("-s" switch, thanks to @markom via github) It can now auto detect the serial device and the serial speed from any .ino file in the working directory.
 * August/2018: Adding auto detection of the Arduino IDE installation; it works either if you installed from the repo, downloaded from www.arduino.cc and install it manually or install it using [ubuntu-make](https://wiki.ubuntu.com/ubuntu-make) see the "Configuration" section below. (Thanks to Kjell Morgenstern for the initial feature proposition)
 * May/2018: Adding an option to list the auto detected ports for a specific board, and allow to upload to more than one board at a time (Thanks to Don Haig)
 * May/2018: The script can now handle devices (boards) with multiple serial identifiers (like clone leonardo boards before being programmed with Arduino) Thanks to Don Haig for pointing the issue and testing the proposed fix.
@@ -132,6 +133,22 @@ cd %d ; amake -c %f
 The "-c" parameter also unset the feature of caching the board and file; after a "clean" you must always compile the project against the main file to gain that feature again.
 
 Even so, if you had successfully compiled it on the past then you can dismiss the "%f" parameter (just once, as a '-c' switch will break that feature)
+
+**Monitor any Serial debug info**
+
+```
+cd %d ; amake -s
+```
+
+For this to work properly you will need to make a successful "amake -v" after and be on the project/sketch folder. The serial speed is read from the .ino files and some other data is taken from the ".amake" hidden file that resides on that folder.
+
+If in trouble just pass all arguments to it, like this:
+
+```
+cd %d ; amake -s /dev/ttyUSB0 9600
+```
+
+The params are the serial port device file and then the serial speed.
 
 ## Other IDEs ##
 
