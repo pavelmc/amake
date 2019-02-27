@@ -85,7 +85,7 @@ user_conf() {
     echo "DEFAULT_PORT=\"$2\"" >> $UC
     echo "" >> $UC
     echo "# Whether the detected APATH is valid or not" >> $UC
-    echo "VALID_APATH=\"$2\"" >> $UC
+    echo "VALID_APATH=\"$3\"" >> $UC
     echo "" >> $UC
 
     cd $WD
