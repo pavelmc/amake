@@ -244,10 +244,10 @@ which_board() {
             MCUSTR="arduino:avr:uno"
             ;;
         pro)
-            mcustr="arduino:avr:pro:cpu=8mhzatmega168"
+            mcustr="arduino:avr:pro:cpu=8MHzatmega168"
             ;;
         pro5v)
-            mcustr="arduino:avr:pro:cpu=16mhzatmega168"
+            mcustr="arduino:avr:pro:cpu=16MHzatmega168"
             ;;
         pro328)
             MCUSTR="arduino:avr:pro:cpu=8MHzatmega328"
