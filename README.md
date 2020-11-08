@@ -14,7 +14,7 @@ Having a way to build the arduino projects with the arduino tools in the command
 
 First approach was using directly the arduino-builder tool, that approach worked well with defaults arduino boards, but once you get on other plattforms and compilers... things start to be difficult, so to avoid that I switched completely to use the arduino CLI.
 
-This script is a way to make the Arduino IDE CLI even simpler, I will support it as long as it's is usefull for me and others, so please let me know it's a nice tool for you.
+This script is a way to make the Arduino IDE CLI even simpler, I will support it as long as it's is useful for me and others, so please let me know if it's a nice tool for you.
 
 ## Features ##
 
@@ -166,7 +166,7 @@ I make some sacrifices in the process of make this easy from the command line, t
 
 ### Board Aliases and real names ###
 
-The Arduino IDE uses a schema for the user friendly names and **full qualified board names** (fqbn), I have not built automatic support for it, yet, so I introduces what is know as board aliases.
+The Arduino IDE uses a schema for the user friendly names and **full qualified board names** (fqbn), I have not built automatic support for it, yet, so I introduces what is known as board aliases.
 
 The Arduino IDE uses the fqbn of the board and that can be a tricky game, some examples:
 

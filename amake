@@ -244,10 +244,10 @@ which_board() {
             MCUSTR="arduino:avr:uno"
             ;;
         pro)
-            MCUSTR="arduino:avr:pro:cpu=8MHzatmega168"
+            mcustr="arduino:avr:pro:cpu=8mhzatmega168"
             ;;
         pro5v)
-            MCUSTR="arduino:avr:pro:cpu=16MHzatmega168"
+            mcustr="arduino:avr:pro:cpu=16mhzatmega168"
             ;;
         pro328)
             MCUSTR="arduino:avr:pro:cpu=8MHzatmega328"
@@ -312,8 +312,11 @@ which_board() {
         lolinv3fast)
             MCUSTR="esp8266:esp8266:nodemcuv2:CpuFrequency=80,VTable=flash,FlashSize=4M1M,LwIPVariant=v2mss536,Debug=Disabled,DebugLevel=None____,FlashErase=none,UploadSpeed=230400"
             ;;
+        8266)
+            MCUSTR="esp8266:esp8266:generic:xtal=80,vt=flash,exception=legacy,ssl=all,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=40,FlashMode=dout,eesz=1M64,led=2,sdk=nonosdk_190703,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200"
+            ;;
 
-        *)
+                    *)
             # not a preset alias
             # if in "oem:platform:board" patter just return it
             # else try to load it from the cached value
@@ -529,6 +532,7 @@ boards() {
     echo "        mega = Arduino Mega (Mega, cpu ATMega1280)"
     echo "     lolinv3 = NodeMCU Lolin (wemos.cc) NodeMcu V3 @115 kb uploads"
     echo " lolinv3fast = NodeMCU Lolin (wemos.cc) NodeMcu V3 @230 kb uploads"
+    echo "        8266 = Generic ESP8266 Module" 
     echo " "
 }
 
